@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}My Wishlist | Style Bazaar{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-16 px-4">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="mb-12 flex flex-col md:flex-row md:items-center md:justify-between gap-8">
+            <div>
+                <h1 class="text-5xl md:text-6xl font-extrabold text-gray-900 dark:text-white mb-4">
+                    My Wishlist
+                </h1>
+                <p class="text-2xl text-gray-600 dark:text-gray-400">
+                    {% if wishlist_items %}
+                        {{ wishlist_items.count }} treasured item{{ wishlist_items.count|pluralize }}
+                    {% else %}
+                        Ready to fall in love with something new? ❤️
+                    {% endif %}
+                </p>
+            </div>
+
+            <a href="{% url 'products:product_list' %}"
+               class="inline-flex items-center gap-4 bg-gradient-to-r from-pink-600 to-purple-600 text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                </svg>
+                Continue Shopping
+            </a>
+        </div>
+
+        {% if wishlist_items %}
+        <!-- Wishlist Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
+            {% for item in wishlist_items %}
+            <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden group hover:shadow-2xl transform hover:-translate-y-3 transition-all duration-500 border border-gray-200 dark:border-gray-700">
+                <a href="{% url 'products:product_detail' item.product.slug %}">
+                    <div class="relative aspect-square overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800">
+                        {% with main_image=item.product.images.first %}
+                        {% if main_image %}
+                        <img src="{{ main_image.image.url }}"
+                             alt="{{ item.product.name }}"
+                             class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                        {% else %}
+                        <div class="w-full h-full flex items-center justify-center">
+                            <span class="text-8xl opacity-30">
+                                {% if 'makeup' in item.product.category.name|lower %}💄
+                                {% elif 'skincare' in item.product.category.name|lower %}🧴
+                                {% elif 'jewelry' in item.product.category.name|lower %}💎
+                                {% else %}✨{% endif %}
+                            </span>
+                        </div>
+                        {% endif %}
+                        {% endwith %}
+
+                        <!-- Remove from Wishlist Button -->
+                        <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <form action="{% url 'users:remove_from_wishlist' item.product.id %}" method="post" class="inline">
+                                {% csrf_token %}
+                                <button type="submit"
+                                        class="bg-white/90 dark:bg-gray-900/90 backdrop-blur p-3 rounded-full shadow-lg hover:bg-red-100 dark:hover:bg-red-900/50 transition-all">
+                                    <svg class="w-7 h-7 text-red-600 dark:text-red-400" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                                    </svg>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Savings Badge -->
+                        {% if item.product.has_active_promotion %}
+                        <div class="absolute top-4 left-4 bg-red-600 text-white px-4 py-2 rounded-full font-bold text-sm shadow-lg">
+                            -{{ item.product.active_promotion.discount_value|floatformat:0 }}%
+                        </div>
+                        {% endif %}
+                    </div>
+                </a>
+
+                <div class="p-8">
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white line-clamp-2 mb-4">
+                        <a href="{% url 'products:product_detail' item.product.slug %}" class="hover:text-pink-600 dark:hover:text-pink-400 transition">
+                            {{ item.product.name }}
+                        </a>
+                    </h3>
+
+                    <!-- Price Section -->
+                    <div class="mb-6">
+                        <div class="flex items-baseline gap-4">
+                            <p class="text-4xl font-black text-pink-600 dark:text-pink-400">
+                                K{{ item.product.current_price|floatformat:2 }}
+                            </p>
+                            {% if item.product.has_savings %}
+                            <p class="text-xl text-gray-500 line-through">
+                                K{{ item.product.price|floatformat:2 }}
+                            </p>
+                            {% endif %}
+                        </div>
+                        {% if item.product.has_savings %}
+                        <p class="text-sm text-green-600 dark:text-green-400 font-medium mt-2">
+                            Save K{{ item.product.savings_amount|floatformat:2 }}
+                        </p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Stock Status -->
+                    <div class="mb-6">
+                        {% if item.product.stock > 0 %}
+                        <span class="inline-flex items-center gap-2 px-4 py-2 bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300 rounded-full text-sm font-medium">
+                            <i class="fas fa-check-circle"></i>
+                            In Stock ({{ item.product.stock }} available)
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center gap-2 px-4 py-2 bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-300 rounded-full text-sm font-medium">
+                            <i class="fas fa-times-circle"></i>
+                            Out of Stock
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Add to Cart -->
+                    <form action="{% url 'cart:cart_add' item.product.id %}" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="quantity" value="1">
+                        <button type="submit"
+                                {% if item.product.stock == 0 %}disabled{% endif %}
+                                class="w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white font-bold py-4 rounded-2xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-3 {% if item.product.stock == 0 %}opacity-60 cursor-not-allowed{% else %}cursor-pointer{% endif %}">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                            </svg>
+                            {% if item.product.stock > 0 %}
+                                Add to Cart
+                            {% else %}
+                                Notify Me When Available
+                            {% endif %}
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% else %}
+        <!-- Empty State -->
+        <div class="text-center py-32 bg-white dark:bg-gray-800 rounded-3xl shadow-2xl">
+            <div class="text-9xl mb-10 opacity-20">❤️</div>
+            <h2 class="text-5xl font-black text-gray-800 dark:text-white mb-6">
+                Your wishlist is feeling lonely
+            </h2>
+            <p class="text-2xl text-gray-600 dark:text-gray-400 mb-12 max-w-2xl mx-auto leading-relaxed">
+                Save your favorite products here so you can find them easily later. Start exploring and let the magic begin!
+            </p>
+            <a href="{% url 'products:product_list' %}"
+               class="inline-flex items-center gap-4 bg-gradient-to-r from-pink-600 to-purple-600 text-white px-12 py-6 rounded-3xl font-extrabold text-2xl shadow-2xl hover:shadow-3xl transform hover:-translate-y-2 transition-all duration-500">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+                Discover Amazing Products
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+{% block title %}Order Placed Successfully | Style Bazaar{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4">
+    <div class="max-w-5xl mx-auto text-center">
+        <!-- Success Message -->
+        <div class="mb-16">
+            <img src="https://www.shutterstock.com/image-vector/3d-party-popper-emoji-explosion-600nw-2443765155.jpg" 
+                 alt="Celebration!" 
+                 class="w-32 h-32 mx-auto mb-8 animate-bounce">
+            <h1 class="text-5xl md:text-6xl font-extrabold text-gray-900 dark:text-white mb-4">
+                Order Placed Successfully!
+            </h1>
+            <p class="text-2xl text-gray-700 dark:text-gray-300">Order #{{ order.id }}</p>
+            <p class="text-lg text-gray-600 dark:text-gray-400 mt-6 max-w-2xl mx-auto">
+                Thank you for shopping with Style Bazaar! Your order has been received and is awaiting payment.
+            </p>
+        </div>
+
+        <!-- Payment Section -->
+        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-10 mb-12">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-8">
+                Complete Your Payment
+            </h2>
+
+            {% if order.is_paid %}
+                <div class="text-green-600 dark:text-green-400 text-2xl font-bold mb-8 flex items-center justify-center gap-4">
+                    <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    Payment Completed Successfully
+                </div>
+                <p class="text-xl text-gray-600 dark:text-gray-300">Your order is confirmed and will be processed soon.</p>
+            {% else %}
+                <div class="text-amber-600 dark:text-amber-400 text-2xl font-bold mb-10">
+                    <strong>Amount Due:</strong> K{{ order.get_grand_total|floatformat:2 }} ZMW
+                </div>
+
+                <!-- Payment Methods -->
+                <div class="space-y-8">
+
+                    <!-- Airtel Money -->
+                    <div class="payment-option rounded-3xl overflow-hidden shadow-lg border-2 border-transparent hover:border-red-500 transition-all duration-500"
+                         data-method="airtelmoney">
+                        <button type="button" class="w-full p-10 text-left flex items-center justify-between bg-gradient-to-br from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20 hover:from-red-100 hover:to-pink-100 transition">
+                            <div class="flex items-center gap-8">
+                                <img src="https://mobilemoneyafrica.com/cdn/media/photos/shares/airtelmoney.png" 
+                                     alt="Airtel Money Logo" 
+                                     class="w-24 h-24 object-contain drop-shadow-lg">
+                                <div class="text-left">
+                                    <h3 class="text-3xl font-extrabold text-red-700 dark:text-red-400">Airtel Money</h3>
+                                    <p class="text-lg text-gray-700 dark:text-gray-300 mt-2">Pay instantly with your Airtel wallet</p>
+                                </div>
+                            </div>
+                            <img src="https://www.shutterstock.com/image-illustration/minimalist-right-arrow-icon-centered-260nw-2648943753.jpg" 
+                                 alt="Select" 
+                                 class="w-10 h-10 opacity-60">
+                        </button>
+
+                        <div class="mobile-input px-10 pb-10 bg-white dark:bg-gray-800 hidden">
+                            <form method="post" action="{% url 'orders:initiate_payment' order.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="method" value="airtelmoney">
+                                <div class="max-w-lg mx-auto">
+                                    <label for="airtel-number" class="block text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
+                                        Enter your Airtel mobile number
+                                    </label>
+                                    <input type="tel" name="phone_number" id="airtel-number"
+                                           placeholder="e.g. 0977123456"
+                                           class="w-full px-8 py-5 text-xl border-2 border-red-300 rounded-2xl focus:border-red-600 focus:ring-4 focus:ring-red-200 outline-none transition"
+                                           pattern="(09|\+2609)[7-9][0-9]{7}"
+                                           title="Valid Airtel number (097x/077x)"
+                                           required>
+                                    <button type="submit"
+                                            class="mt-8 w-full bg-gradient-to-r from-red-600 to-pink-600 text-white font-extrabold text-2xl py-6 rounded-2xl shadow-2xl hover:shadow-3xl transform hover:-translate-y-1 transition-all duration-300">
+                                        Pay K{{ order.get_grand_total|floatformat:2 }} with Airtel Money
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- MTN Mobile Money -->
+                    <div class="payment-option rounded-3xl overflow-hidden shadow-lg border-2 border-transparent hover:border-yellow-500 transition-all duration-500"
+                         data-method="mtn">
+                        <button type="button" class="w-full p-10 text-left flex items-center justify-between bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 hover:from-yellow-100 hover:to-orange-100 transition">
+                            <div class="flex items-center gap-8">
+                                <img src="https://www.gcmrwanda.org/en/give/_jcr_content/content-parsys/tile_copy_copy_copy.transform/CruHalf432x243/img.png" 
+                                     alt="MTN MoMo Logo" 
+                                     class="w-28 h-28 object-contain drop-shadow-lg">
+                                <div class="text-left">
+                                    <h3 class="text-3xl font-extrabold text-yellow-600 dark:text-yellow-400">MTN Mobile Money</h3>
+                                    <p class="text-lg text-gray-700 dark:text-gray-300 mt-2">Fast & secure payment with MTN MoMo</p>
+                                </div>
+                            </div>
+                            <img src="https://www.shutterstock.com/image-illustration/minimalist-right-arrow-icon-centered-260nw-2648943753.jpg" 
+                                 alt="Select" 
+                                 class="w-10 h-10 opacity-60">
+                        </button>
+
+                        <div class="mobile-input px-10 pb-10 bg-white dark:bg-gray-800 hidden">
+                            <form method="post" action="{% url 'orders:initiate_payment' order.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="method" value="mtn">
+                                <div class="max-w-lg mx-auto">
+                                    <label for="mtn-number" class="block text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
+                                        Enter your MTN mobile number
+                                    </label>
+                                    <input type="tel" name="phone_number" id="mtn-number"
+                                           placeholder="e.g. 0966123456"
+                                           class="w-full px-8 py-5 text-xl border-2 border-yellow-300 rounded-2xl focus:border-yellow-600 focus:ring-4 focus:ring-yellow-200 outline-none transition"
+                                           pattern="(09|\+2609)[6-7][0-9]{7}"
+                                           title="Valid MTN number (096x/076x)"
+                                           required>
+                                    <button type="submit"
+                                            class="mt-8 w-full bg-gradient-to-r from-yellow-500 to-orange-600 text-white font-extrabold text-2xl py-6 rounded-2xl shadow-2xl hover:shadow-3xl transform hover:-translate-y-1 transition-all duration-300">
+                                        Pay K{{ order.get_grand_total|floatformat:2 }} with MTN MoMo
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Zamtel Kwacha -->
+                    <div class="payment-option rounded-3xl overflow-hidden shadow-lg border-2 border-transparent hover:border-green-500 transition-all duration-500"
+                         data-method="zamtel">
+                        <button type="button" class="w-full p-10 text-left flex items-center justify-between bg-gradient-to-br from-green-50 to-teal-50 dark:from-green-900/20 dark:to-teal-900/20 hover:from-green-100 hover:to-teal-100 transition">
+                            <div class="flex items-center gap-8">
+                                <img src="https://mir-s3-cdn-cf.behance.net/projects/404/4f6bef198472099.6642372fe686a.png" 
+                                     alt="Zamtel Kwacha Logo" 
+                                     class="w-28 h-28 object-contain drop-shadow-lg">
+                                <div class="text-left">
+                                    <h3 class="text-3xl font-extrabold text-green-700 dark:text-green-400">Zamtel Kwacha</h3>
+                                    <p class="text-lg text-gray-700 dark:text-gray-300 mt-2">Pay securely with your Zamtel wallet</p>
+                                </div>
+                            </div>
+                            <img src="https://www.shutterstock.com/image-illustration/minimalist-right-arrow-icon-centered-260nw-2648943753.jpg" 
+                                 alt="Select" 
+                                 class="w-10 h-10 opacity-60">
+                        </button>
+
+                        <div class="mobile-input px-10 pb-10 bg-white dark:bg-gray-800 hidden">
+                            <form method="post" action="{% url 'orders:initiate_payment' order.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="method" value="zamtel">
+                                <div class="max-w-lg mx-auto">
+                                    <label for="zamtel-number" class="block text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
+                                        Enter your Zamtel mobile number
+                                    </label>
+                                    <input type="tel" name="phone_number" id="zamtel-number"
+                                           placeholder="e.g. 0955123456"
+                                           class="w-full px-8 py-5 text-xl border-2 border-green-300 rounded-2xl focus:border-green-600 focus:ring-4 focus:ring-green-200 outline-none transition"
+                                           pattern="(09|\+2609)[5][0-9]{7}"
+                                           title="Valid Zamtel number (095x)"
+                                           required>
+                                    <button type="submit"
+                                            class="mt-8 w-full bg-gradient-to-r from-green-600 to-teal-600 text-white font-extrabold text-2xl py-6 rounded-2xl shadow-2xl hover:shadow-3xl transform hover:-translate-y-1 transition-all duration-300">
+                                        Pay K{{ order.get_grand_total|floatformat:2 }} with Zamtel Kwacha
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-12 text-center text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 rounded-2xl p-8">
+                    <p class="text-lg">After successful payment, your order status will update automatically.</p>
+                    <p class="mt-3">You’ll receive an SMS confirmation within minutes.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Order Summary -->
+        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-10 text-left mb-12">
+            <h3 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">Order Summary</h3>
+            <div class="space-y-6 text-xl">
+                <div class="flex justify-between"><span class="text-gray-600 dark:text-gray-400">Subtotal</span><span class="font-semibold">K{{ order.get_items_total|floatformat:2 }}</span></div>
+                {% if order.discount_amount > 0 %}
+                <div class="flex justify-between text-green-600 dark:text-green-400 font-bold">
+                    <span>Discount {% if order.coupon %}({{ order.coupon.code }}){% endif %}</span>
+                    <span>-K{{ order.discount_amount|floatformat:2 }}</span>
+                </div>
+                {% endif %}
+                <div class="flex justify-between text-gray-600 dark:text-gray-400"><span>Delivery Fee</span><span class="font-semibold">K{{ order.delivery_price|floatformat:2 }}</span></div>
+                <div class="border-t-4 border-pink-500 pt-6 flex justify-between text-3xl font-extrabold text-pink-600 dark:text-pink-400">
+                    <span>Grand Total</span>
+                    <span>K{{ order.get_grand_total|floatformat:2 }} ZMW</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex flex-col sm:flex-row gap-8 justify-center items-center">
+            <a href="{% url 'orders:order_detail' order.id %}" 
+               class="bg-gradient-to-r from-pink-600 to-purple-700 text-white px-12 py-5 rounded-2xl font-extrabold text-xl shadow-2xl hover:shadow-3xl transform hover:-translate-y-1 transition-all duration-300">
+                View Order Details
+            </a>
+            <a href="{% url 'products:product_list' %}" 
+               class="text-pink-600 dark:text-pink-400 font-bold text-xl hover:text-pink-700 dark:hover:text-pink-300 flex items-center gap-3 transition">
+                Continue Shopping
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                </svg>
+            </a>
+        </div>
+
+        <div class="mt-20 text-gray-500 dark:text-gray-400 text-center">
+            <p class="text-lg">Need help? Contact us at <a href="mailto:support@stylebazaar.com" class="text-pink-600 dark:text-pink-400 underline font-semibold">support@stylebazaar.com</a></p>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Expandable Payment Options -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const options = document.querySelectorAll(".payment-option");
+
+    options.forEach(option => {
+        const button = option.querySelector("button[type='button']");
+        const inputSection = option.querySelector(".mobile-input");
+
+        button.addEventListener("click", function () {
+            // Close all others
+            document.querySelectorAll(".mobile-input").forEach(sec => {
+                if (sec !== inputSection) sec.classList.add("hidden");
+            });
+
+            // Toggle current
+            inputSection.classList.toggle("hidden");
+
+            // Visual feedback
+            if (!inputSection.classList.contains("hidden")) {
+                inputSection.querySelector("input[type='tel']").focus();
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

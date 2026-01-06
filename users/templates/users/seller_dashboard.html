@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+{% block title %}Seller Dashboard | Style Bazaar{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 transition-colors duration-500">
+    <div class="max-w-7xl mx-auto">
+
+        <!-- Page Header -->
+        <div class="mb-12 text-center md:text-left">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-gray-100">
+                Seller Dashboard
+            </h1>
+            <p class="text-xl text-gray-600 dark:text-gray-400 mt-4">
+                Welcome back, <span class="font-semibold text-pink-600 dark:text-pink-400">
+                    {{ user.get_full_name|default:user.username }}
+                </span>! 
+                Manage and grow your business with ease.
+            </p>
+        </div>
+
+        <!-- Quick Stats / Overview Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+            <!-- Active Products -->
+            <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-8 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            Active Products
+                        </p>
+                        <p class="text-5xl font-extrabold text-gray-900 dark:text-gray-100 mt-4">
+                            {{ active_products }}
+                        </p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Currently listed</p>
+                    </div>
+                    <div class="w-20 h-20 bg-pink-100 dark:bg-pink-900/40 rounded-full flex items-center justify-center text-5xl">
+                        📦
+                    </div>
+                </div>
+            </div>
+
+            <!-- Earnings This Month -->
+            <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-8 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            Earnings This Month
+                        </p>
+                        <p class="text-5xl font-extrabold text-green-600 dark:text-green-400 mt-4">
+                            K{{ total_sales_this_month|floatformat:2 }}
+                        </p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Total revenue</p>
+                    </div>
+                    <div class="w-20 h-20 bg-green-100 dark:bg-green-900/40 rounded-full flex items-center justify-center text-5xl">
+                        💰
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Orders -->
+            <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-8 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            Pending Orders
+                        </p>
+                        <p class="text-5xl font-extrabold text-purple-600 dark:text-purple-400 mt-4">
+                            {{ pending_orders }}
+                        </p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Need attention</p>
+                    </div>
+                    <div class="w-20 h-20 bg-purple-100 dark:bg-purple-900/40 rounded-full flex items-center justify-center text-5xl">
+                        🛒
+                    </div>
+                </div>
+                {% if pending_orders > 0 %}
+                <a href="{% url 'orders:seller_orders' %}" class="block mt-6 text-pink-600 dark:text-pink-400 font-semibold hover:underline">
+                    View pending orders →
+                </a>
+                {% endif %}
+            </div>
+
+            <!-- Customer Rating -->
+            <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-8 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            Customer Rating
+                        </p>
+                        <p class="text-5xl font-extrabold text-yellow-600 dark:text-yellow-400 mt-4">
+                            {% if avg_rating != "N/A" %}{{ avg_rating }}{% else %}—{% endif %}
+                        </p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                            From {{ review_count }} review{{ review_count|pluralize }}
+                        </p>
+                    </div>
+                    <div class="w-20 h-20 bg-yellow-100 dark:bg-yellow-900/40 rounded-full flex items-center justify-center text-5xl">
+                        ⭐
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <h2 class="text-3xl font-extrabold text-gray-900 dark:text-gray-100 mb-10">Quick Actions</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+            <!-- My Products -->
+            <a href="{% url 'products:seller_product_list' %}" 
+               class="group bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+                <div class="h-48 bg-gradient-to-br from-pink-500 to-purple-600 dark:from-pink-600 dark:to-purple-700 flex items-center justify-center text-7xl text-white group-hover:scale-110 transition-transform duration-500">
+                    📦
+                </div>
+                <div class="p-8">
+                    <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100">My Products</h3>
+                    <p class="text-gray-600 dark:text-gray-400 mt-4">
+                        Add new items, update prices, manage stock, and optimize listings
+                    </p>
+                    <p class="mt-8 text-pink-600 dark:text-pink-400 font-bold flex items-center gap-3 group-hover:gap-5 transition-all">
+                        Manage Products →
+                    </p>
+                </div>
+            </a>
+
+            <!-- Orders -->
+            <a href="{% url 'orders:seller_orders' %}" 
+               class="group bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+                <div class="h-48 bg-gradient-to-br from-teal-500 to-green-600 dark:from-teal-600 dark:to-green-700 flex items-center justify-center text-7xl text-white group-hover:scale-110 transition-transform duration-500">
+                    🚚
+                </div>
+                <div class="p-8">
+                    <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Orders</h3>
+                    <p class="text-gray-600 dark:text-gray-400 mt-4">
+                        Process orders, update shipping status, and communicate with buyers
+                    </p>
+                    <p class="mt-8 text-pink-600 dark:text-pink-400 font-bold flex items-center gap-3 group-hover:gap-5 transition-all">
+                        Manage Orders →
+                    </p>
+                </div>
+            </a>
+
+            <!-- Send Notification -->
+            <a href="{% url 'orders:seller_notifications' %}" 
+               class="group bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+                <div class="h-48 bg-gradient-to-br from-indigo-500 to-purple-700 dark:from-indigo-600 dark:to-purple-800 flex items-center justify-center text-7xl text-white group-hover:scale-110 transition-transform duration-500">
+                    🔔
+                </div>
+                <div class="p-8">
+                    <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Send Notification</h3>
+                    <p class="text-gray-600 dark:text-gray-400 mt-4">
+                        Keep buyers informed: send order updates, shipping alerts, or promotional messages
+                    </p>
+                    <p class="mt-8 text-pink-600 dark:text-pink-400 font-bold flex items-center gap-3 group-hover:gap-5 transition-all">
+                        Notify Buyers →
+                    </p>
+                </div>
+            </a>
+
+            <!-- Sales Reports -->
+            <a href="{% url 'products:seller_reports' %}" 
+               class="group bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+                <div class="h-48 bg-gradient-to-br from-blue-500 to-indigo-600 dark:from-blue-600 dark:to-indigo-700 flex items-center justify-center text-7xl text-white group-hover:scale-110 transition-transform duration-500">
+                    📊
+                </div>
+                <div class="p-8">
+                    <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Sales Reports</h3>
+                    <p class="text-gray-600 dark:text-gray-400 mt-4">
+                        View revenue trends, top products, and performance analytics
+                    </p>
+                    <p class="mt-8 text-pink-600 dark:text-pink-400 font-bold flex items-center gap-3 group-hover:gap-5 transition-all">
+                        View Analytics →
+                    </p>
+                </div>
+            </a>
+
+            <!-- Payouts & Earnings -->
+            <a href="{% url 'seller_payouts' %}" 
+               class="group bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+                <div class="h-48 bg-gradient-to-br from-yellow-500 to-orange-600 dark:from-yellow-600 dark:to-orange-700 flex items-center justify-center text-7xl text-white group-hover:scale-110 transition-transform duration-500">
+                    💸
+                </div>
+                <div class="p-8">
+                    <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Payouts & Earnings</h3>
+                    <p class="text-gray-600 dark:text-gray-400 mt-4">
+                        Track your earnings and manage withdrawal settings
+                    </p>
+                    <p class="mt-8 text-pink-600 dark:text-pink-400 font-bold flex items-center gap-3 group-hover:gap-5 transition-all">
+                        View Earnings →
+                    </p>
+                </div>
+            </a>
+
+            <!-- Promotions -->
+            <a href="{% url 'products:seller_promotions' %}" 
+               class="group bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+                <div class="h-48 bg-gradient-to-br from-pink-600 to-red-600 dark:from-pink-700 dark:to-red-700 flex items-center justify-center text-7xl text-white group-hover:scale-110 transition-transform duration-500">
+                    🎁
+                </div>
+                <div class="p-8">
+                    <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Promotions</h3>
+                    <p class="text-gray-600 dark:text-gray-400 mt-4">
+                        Create discounts, flash sales, and special offers to boost sales
+                    </p>
+                    <p class="mt-8 text-pink-600 dark:text-pink-400 font-bold flex items-center gap-3 group-hover:gap-5 transition-all">
+                        Create Offers →
+                    </p>
+                </div>
+            </a>
+
+            <!-- Add New Category - Conditional -->
+            {% if user.sellerprofile %}
+            <a href="{% url 'products:seller_category_create' %}" 
+               class="group bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+                <div class="h-48 bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-600 dark:from-indigo-600 dark:via-purple-700 dark:to-pink-700 flex items-center justify-center text-7xl text-white group-hover:scale-110 transition-transform duration-500">
+                    🗂️
+                </div>
+                <div class="p-8">
+                    <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Add New Category</h3>
+                    <p class="text-gray-600 dark:text-gray-400 mt-4">
+                        Create a new product category to organize your inventory better
+                    </p>
+                    <p class="mt-8 text-pink-600 dark:text-pink-400 font-bold flex items-center gap-3 group-hover:gap-5 transition-all">
+                        Create Category →
+                    </p>
+                </div>
+            </a>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}

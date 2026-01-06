@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Payment Reference Received | Style Bazaar{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12 px-4">
+    <div class="max-w-4xl mx-auto text-center">
+        <!-- Success Celebration -->
+        <div class="mb-12">
+            <img src="https://previews.123rf.com/images/bannosuke/bannosuke1609/bannosuke160900021/62885675-party-popper-with-confetti.jpg" 
+                 alt="Celebration!" class="w-48 h-48 mx-auto mb-8 object-contain">
+            <svg class="w-24 h-24 text-green-600 mx-auto mb-6" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            <h1 class="text-5xl font-extrabold text-gray-900 mb-4">Payment Reference Received!</h1>
+            <p class="text-2xl text-gray-700">Order #{{ order.id }}</p>
+            <p class="text-lg text-gray-600 mt-4 max-w-2xl mx-auto">
+                Thank you! We've recorded your transaction reference <strong>{{ order.payment_transaction_id }}</strong>.<br>
+                Our team will verify the payment shortly (usually within minutes) and update your order status.
+            </p>
+            <p class="text-base text-gray-500 mt-6">
+                You'll receive a confirmation via SMS and/or email once verified.
+            </p>
+        </div>
+
+        <!-- Payment Recap -->
+        <div class="bg-white rounded-3xl shadow-xl p-10 mb-8">
+            <h2 class="text-3xl font-bold text-gray-900 mb-8">Payment Details Recap</h2>
+            
+            <p class="text-lg text-gray-700 mb-6">
+                <strong>Amount Paid:</strong> <span class="text-2xl font-bold text-pink-600">K{{ order.get_grand_total }} ZMW</span>
+            </p>
+
+            <div class="grid md:grid-cols-3 gap-8 mb-8">
+                <!-- MTN MoMo -->
+                <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-3xl p-8 shadow-md">
+                    <img src="https://www.kindpng.com/picc/m/151-1514348_mtn-momo-logo-mobile-money-logo-png-transparent.png" 
+                         alt="MTN MoMo" class="w-32 h-32 mx-auto mb-6 object-contain">
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">MTN Mobile Money</h3>
+                    <p class="text-sm text-gray-700">Merchant: <strong>YOUR_MTN_NUMBER</strong><br>Reference: {{ order.id }}</p>
+                </div>
+
+                <!-- Airtel Money -->
+                <div class="bg-gradient-to-br from-red-50 to-red-100 rounded-3xl p-8 shadow-md">
+                    <img src="https://p.kindpng.com/picc/s/732-7328697_airtel-money-logo-png-transparent-png.png" 
+                         alt="Airtel Money" class="w-32 h-32 mx-auto mb-6 object-contain">
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Airtel Money</h3>
+                    <p class="text-sm text-gray-700">Merchant: <strong>YOUR_AIRTEL_NUMBER</strong><br>Reference: {{ order.id }}</p>
+                </div>
+
+                <!-- Zamtel Kwacha -->
+                <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-3xl p-8 shadow-md">
+                    <img src="https://mir-s3-cdn-cf.behance.net/projects/404/4f6bef198472099.6642372fe686a.png" 
+                         alt="Zamtel Kwacha" class="w-32 h-32 mx-auto mb-6 object-contain">
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Zamtel Kwacha</h3>
+                    <p class="text-sm text-gray-700">Merchant: <strong>YOUR_ZAMTEL_NUMBER</strong><br>Reference: {{ order.id }}</p>
+                </div>
+            </div>
+
+            <div class="bg-blue-50 border border-blue-200 rounded-2xl p-6">
+                <p class="text-gray-700">
+                    <strong>Tip:</strong> If you haven't paid yet or used the wrong reference, you can still make the payment now using the details above.
+                </p>
+            </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="bg-white rounded-3xl shadow-xl p-8 text-left mb-8">
+            <h3 class="text-2xl font-bold text-gray-900 mb-6">Order Summary</h3>
+            <div class="space-y-4 text-lg">
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Subtotal</span>
+                    <span>K{{ order.get_items_total }}</span>
+                </div>
+                {% if order.discount_amount > 0 %}
+                <div class="flex justify-between text-green-600 font-medium">
+                    <span>Discount {% if order.coupon %}({{ order.coupon.code }}){% endif %}</span>
+                    <span>-K{{ order.discount_amount }}</span>
+                </div>
+                {% endif %}
+                <div class="flex justify-between text-gray-600">
+                    <span>Delivery Fee</span>
+                    <span>K{{ order.delivery_price }}</span>
+                </div>
+                <div class="border-t-2 border-gray-300 pt-4 flex justify-between text-2xl font-bold text-pink-600">
+                    <span>Grand Total</span>
+                    <span>K{{ order.get_grand_total }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="mt-12 flex flex-col sm:flex-row gap-6 justify-center items-center">
+            <a href="{% url 'orders:order_detail' order.id %}" 
+               class="bg-pink-600 text-white px-10 py-4 rounded-xl font-bold text-lg hover:bg-pink-700 transition shadow-lg">
+                View Order Details
+            </a>
+            <a href="{% url 'products:buyer_product_list' %}" 
+               class="text-pink-600 font-bold text-lg hover:text-pink-700 transition flex items-center gap-2">
+                Continue Shopping →
+            </a>
+        </div>
+
+        <!-- Support -->
+        <div class="mt-16 text-gray-500 text-sm">
+            <p>Questions? Contact us at <a href="mailto:support@stylebazaar.com" class="text-pink-600 underline">support@stylebazaar.com</a> or WhatsApp +260 XXX XXX XXX</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

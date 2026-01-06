@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% load form_tags %}
+
+{% block title %}Login | Style Bazaar{% endblock %}
+
+{% block content %}
+<div class="min-h-[80vh] flex items-center justify-center px-4 bg-gray-50 dark:bg-gray-900 transition-colors duration-500">
+    <div class="w-full max-w-md">
+        <!-- Login Card -->
+        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl dark:shadow-gray-900/50 p-10 border border-gray-100 dark:border-gray-700">
+            <!-- Logo / Brand -->
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-purple-600 dark:from-pink-400 dark:to-purple-400">
+                    Style Bazaar
+                </h1>
+                <p class="text-gray-600 dark:text-gray-400 mt-3 text-lg">Welcome back! Please login to continue</p>
+            </div>
+
+            <!-- Non-field errors -->
+            {% if form.non_field_errors %}
+                <div class="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl text-red-700 dark:text-red-300 text-sm">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <form method="POST" class="space-y-6" novalidate>
+                {% csrf_token %}
+
+                <!-- Username -->
+                <div>
+                    <label for="{{ form.username.id_for_label }}"
+                           class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                        Username
+                    </label>
+                    {{ form.username|add_class:"w-full px-5 py-3.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-pink-500 dark:focus:ring-pink-400 focus:border-transparent transition-all" }}
+                    {% if form.username.errors %}
+                        <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ form.username.errors|striptags }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Password -->
+                <div>
+                    <label for="{{ form.password.id_for_label }}"
+                           class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                        Password
+                    </label>
+                    <div class="relative">
+                        {{ form.password|add_class:"w-full px-5 py-3.5 pr-14 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-pink-500 dark:focus:ring-pink-400 focus:border-transparent transition-all" }}
+
+                        <!-- Eye Toggle Button -->
+                        <button
+                            type="button"
+                            onclick="togglePassword()"
+                            class="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-500 dark:text-gray-400 hover:text-pink-600 dark:hover:text-pink-400 focus:outline-none transition"
+                            aria-label="Toggle password visibility">
+                            <svg id="eye-open" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            <svg id="eye-closed" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.97 9.97 0 012.133-2.825m4.784-.845A3 3 0 1113 12a3 3 0 01-2.625-1.575m-6.75 6.75L3 21l3.75-3.75" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5" />
+                            </svg>
+                        </button>
+                    </div>
+                    {% if form.password.errors %}
+                        <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ form.password.errors|striptags }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Submit Button -->
+                <button
+                    type="submit"
+                    class="w-full bg-gradient-to-r from-pink-600 to-purple-600 dark:from-pink-500 dark:to-purple-500 text-white font-bold py-4 rounded-xl hover:shadow-lg hover:shadow-pink-500/30 dark:hover:shadow-pink-400/20 transform hover:-translate-y-0.5 transition-all duration-300 text-lg">
+                    Login to My Account
+                </button>
+            </form>
+
+            <!-- Register Link -->
+            <div class="mt-8 text-center">
+                <p class="text-gray-600 dark:text-gray-400">
+                    New to Style Bazaar?
+                    <a href="{% url 'register' %}"
+                       class="font-semibold text-pink-600 dark:text-pink-400 hover:underline transition">
+                        Create an account
+                    </a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Optional: Extra links (forgot password, etc.) -->
+        <div class="text-center mt-6">
+            <a href="{% url 'password_reset' %}" class="text-sm text-gray-500 dark:text-gray-500 hover:text-pink-600 dark:hover:text-pink-400 transition">
+                Forgot your password?
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Password Visibility Toggle Script -->
+<script>
+function togglePassword() {
+    const passwordField = document.getElementById("id_password");
+    const eyeOpen = document.getElementById("eye-open");
+    const eyeClosed = document.getElementById("eye-closed");
+
+    if (passwordField.type === "password") {
+        passwordField.type = "text";
+        eyeOpen.classList.add("hidden");
+        eyeClosed.classList.remove("hidden");
+    } else {
+        passwordField.type = "password";
+        eyeOpen.classList.remove("hidden");
+        eyeClosed.classList.add("hidden");
+    }
+}
+</script>
+{% endblock %}

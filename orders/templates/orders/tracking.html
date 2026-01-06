@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+{% block title %}Seller Dashboard | Style Bazaar{% endblock %}
+
+{% block content %}
+    {% if user.is_authenticated and user.is_seller %}
+        <!-- Only sellers see the full dashboard -->
+        <div class="min-h-screen bg-gray-50 py-12 px-4">
+            <div class="max-w-7xl mx-auto">
+                <!-- Page Header -->
+                <div class="mb-10">
+                    <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900">Seller Dashboard</h1>
+                    <p class="text-xl text-gray-600 mt-3">
+                        Welcome back, {{ user.get_full_name|default:user.username }}!
+                        Grow your business with powerful tools and insights.
+                    </p>
+                </div>
+
+                <!-- Quick Stats / Overview Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                    <!-- Active Products -->
+                    <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500">Active Products</p>
+                                <p class="text-3xl font-bold text-gray-900 mt-2">{{ active_products|default:"0" }}</p>
+                                <p class="text-xs text-gray-500 mt-1">Listed items</p>
+                            </div>
+                            <div class="w-14 h-14 bg-pink-100 rounded-full flex items-center justify-center text-2xl">
+                                📦
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total Sales This Month -->
+                    <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500">Total Sales</p>
+                                <p class="text-3xl font-bold text-gray-900 mt-2">K{{ total_sales_this_month|floatformat:2|default:"0.00" }} ZMW</p>
+                                <p class="text-xs text-gray-500 mt-1">This month</p>
+                            </div>
+                            <div class="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center text-2xl">
+                                💰
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pending Orders -->
+                    <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500">Pending Orders</p>
+                                <p class="text-3xl font-bold text-gray-900 mt-2">{{ pending_orders_count|default:"0" }}</p>
+                                <p class="text-xs text-gray-500 mt-1">To process</p>
+                            </div>
+                            <div class="w-14 h-14 bg-purple-100 rounded-full flex items-center justify-center text-2xl">
+                                🛒
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Seller Rating -->
+                    <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500">Rating</p>
+                                <p class="text-3xl font-bold text-gray-900 mt-2">
+                                    {% if avg_rating != "N/A" %}
+                                        {{ avg_rating }} ⭐
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </p>
+                                <p class="text-xs text-gray-500 mt-1">From {{ review_count|default:"0" }} reviews</p>
+                            </div>
+                            <div class="w-14 h-14 bg-yellow-100 rounded-full flex items-center justify-center text-2xl">
+                                ⭐
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Action Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- My Products — CORRECTED: Now goes to seller's own product list -->
+                    <a href="{% url 'products:seller_product_list' %}"
+                       class="group block bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-pink-200"
+                       aria-label="Manage your products">
+                        <div class="h-32 bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-5xl text-white">
+                            📦
+                        </div>
+                        <div class="p-8">
+                            <h2 class="text-2xl font-bold text-gray-900 group-hover:text-pink-600 transition-colors duration-200">
+                                My Products
+                            </h2>
+                            <p class="text-gray-600 mt-3 leading-relaxed">
+                                Add, edit, or remove products, update prices, manage inventory, and optimize listings for better sales.
+                            </p>
+                            <p class="mt-6 text-pink-600 font-semibold flex items-center gap-2 group-hover:gap-3 transition-all duration-200">
+                                Manage Products
+                                <svg class="w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-200"
+                                     fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </p>
+                        </div>
+                    </a>
+
+                    <!-- Other cards remain the same (all already seller-only URLs) -->
+                    <!-- Stock Alerts & Inventory -->
+                    <a href="{% url 'products:inventory' %}"
+                       class="group block bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
+                        <div class="h-32 bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center text-5xl text-white">
+                            ⚠️
+                        </div>
+                        <div class="p-8">
+                            <h2 class="text-2xl font-bold text-gray-900 group-hover:text-pink-600 transition-colors">Stock Alerts</h2>
+                            <p class="text-gray-600 mt-3">Monitor low-stock items, get instant notifications, and reorder supplies easily.</p>
+                            <p class="mt-6 text-pink-600 font-semibold flex items-center gap-2 group-hover:gap-3 transition-all">
+                                Check Inventory
+                                <svg class="w-5 h-5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </p>
+                        </div>
+                    </a>
+
+                    <!-- Sales Reports & Analytics -->
+                    <a href="{% url 'products:seller_reports' %}"
+                       class="group block bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
+                        <div class="h-32 bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-5xl text-white">
+                            📊
+                        </div>
+                        <div class="p-8">
+                            <h2 class="text-2xl font-bold text-gray-900 group-hover:text-pink-600 transition-colors">Sales Reports</h2>
+                            <p class="text-gray-600 mt-3">Detailed analytics, revenue trends, top products, and performance insights.</p>
+                            <p class="mt-6 text-pink-600 font-semibold flex items-center gap-2 group-hover:gap-3 transition-all">
+                                View Reports
+                                <svg class="w-5 h-5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </p>
+                        </div>
+                    </a>
+
+                    <!-- Categories Management (Admin only) -->
+                    {% if user.is_staff %}
+                    <a href="{% url 'products:category_list' %}"
+                       class="group block bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
+                        <div class="h-32 bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-5xl text-white">
+                            🗂️
+                        </div>
+                        <div class="p-8">
+                            <h2 class="text-2xl font-bold text-gray-900 group-hover:text-pink-600 transition-colors">Categories</h2>
+                            <p class="text-gray-600 mt-3">Manage product categories (admin only).</p>
+                            <p class="mt-6 text-pink-600 font-semibold flex items-center gap-2 group-hover:gap-3 transition-all">
+                                Manage Categories
+                                <svg class="w-5 h-5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </p>
+                        </div>
+                    </a>
+                    {% endif %}
+
+                    <!-- Orders Management -->
+                    <a href="{% url 'orders:seller_orders' %}"
+                       class="group block bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
+                        <div class="h-32 bg-gradient-to-br from-teal-500 to-green-600 flex items-center justify-center text-5xl text-white">
+                            🚚
+                        </div>
+                        <div class="p-8">
+                            <h2 class="text-2xl font-bold text-gray-900 group-hover:text-pink-600 transition-colors">Orders</h2>
+                            <p class="text-gray-600 mt-3">Process new orders, update shipping status, handle returns, and communicate with buyers.</p>
+                            <p class="mt-6 text-pink-600 font-semibold flex items-center gap-2 group-hover:gap-3 transition-all">
+                                Manage Orders
+                                <svg class="w-5 h-5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </p>
+                        </div>
+                    </a>
+
+                    <!-- Payouts & Earnings -->
+                    <a href="{% url 'users:seller_payouts' %}"
+                       class="group block bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
+                        <div class="h-32 bg-gradient-to-br from-yellow-500 to-orange-600 flex items-center justify-center text-5xl text-white">
+                            💸
+                        </div>
+                        <div class="p-8">
+                            <h2 class="text-2xl font-bold text-gray-900 group-hover:text-pink-600 transition-colors">Payouts & Earnings</h2>
+                            <p class="text-gray-600 mt-3">Track your earnings, view payout history, and manage withdrawal settings.</p>
+                            <p class="mt-6 text-pink-600 font-semibold flex items-center gap-2 group-hover:gap-3 transition-all">
+                                View Earnings
+                                <svg class="w-5 h-5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </p>
+                        </div>
+                    </a>
+
+                    <!-- Promotions & Discounts -->
+                    <a href="{% url 'products:seller_promotions' %}"
+                       class="group block bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
+                        <div class="h-32 bg-gradient-to-br from-pink-600 to-purple-700 flex items-center justify-center text-5xl text-white">
+                            🎁
+                        </div>
+                        <div class="p-8">
+                            <h2 class="text-2xl font-bold text-gray-900 group-hover:text-pink-600 transition-colors">Promotions</h2>
+                            <p class="text-gray-600 mt-3">Create flash sales, discount codes, and bundles to boost your sales.</p>
+                            <p class="mt-6 text-pink-600 font-semibold flex items-center gap-2 group-hover:gap-3 transition-all">
+                                Create Promotions
+                                <svg class="w-5 h-5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <!-- Non-sellers (buyers or anonymous) see nothing or a message -->
+        <div class="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div class="text-center">
+                <h1 class="text-4xl font-bold text-gray-800 mb-4">Access Denied</h1>
+                <p class="text-xl text-gray-600">This page is only available to registered sellers.</p>
+                <a href="{% url 'products:buyer_product_list' %}" class="mt-6 inline-block bg-pink-600 text-white px-6 py-3 rounded-lg hover:bg-pink-700">
+                    Continue Shopping
+                </a>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

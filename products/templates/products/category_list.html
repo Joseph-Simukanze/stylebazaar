@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Categories | Style Bazaar{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-16 px-4 transition-colors duration-500">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-16">
+            <h1 class="text-5xl md:text-6xl font-extrabold text-gray-900 dark:text-white mb-6">
+                Shop by Category
+            </h1>
+            <p class="text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                Explore our curated collections of premium beauty, fashion, and lifestyle products
+            </p>
+        </div>
+
+        {% if categories %}
+        <!-- Categories Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
+            {% for category in categories %}
+            <div class="group">
+                <a href="{% url 'products:category_detail' category.slug %}" class="block h-full">
+                    <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden hover:shadow-2xl hover:-translate-y-3 transition-all duration-500 flex flex-col h-full border border-gray-200 dark:border-gray-700">
+                        <!-- Category Image -->
+                        <div class="relative overflow-hidden h-64">
+                            {% if category.image %}
+                            <img src="{{ category.image.url }}"
+                                 alt="{{ category.name }}"
+                                 class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                            {% else %}
+                            <div class="w-full h-full bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-600 flex items-center justify-center">
+                                <span class="text-8xl text-white/30">✨</span>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Category Info -->
+                        <div class="p-8 flex flex-col flex-grow">
+                            <h3 class="text-3xl font-extrabold text-gray-900 dark:text-white group-hover:text-pink-600 dark:group-hover:text-pink-400 transition-colors duration-300">
+                                {{ category.name }}
+                            </h3>
+
+                            <p class="text-lg text-gray-600 dark:text-gray-400 mt-3">
+                                {{ category.product_count|default:"0" }} product{{ category.product_count|pluralize }}
+                            </p>
+
+                            <!-- Action Links -->
+                            <div class="mt-auto pt-8 space-y-4">
+                                <div class="flex items-center text-pink-600 dark:text-pink-400 font-bold text-lg group-hover:text-pink-700 dark:group-hover:text-pink-300 transition">
+                                    View Products
+                                    <svg class="w-6 h-6 ml-3 transform group-hover:translate-x-2 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"/>
+                                    </svg>
+                                </div>
+
+                                <!-- Post Product Button (Sellers Only) -->
+                                {% if user.is_authenticated and user.is_seller %}
+                                <a href="{% url 'products:product_create' %}?category={{ category.id }}"
+                                   class="block text-center bg-gradient-to-r from-pink-600 to-purple-700 hover:from-pink-700 hover:to-purple-800 text-white font-extrabold py-4 rounded-2xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
+                                    + Post a Product
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% else %}
+        <!-- Empty State -->
+        <div class="text-center py-40 bg-white dark:bg-gray-800 rounded-3xl shadow-2xl">
+            <div class="text-9xl text-gray-200 dark:text-gray-700 mb-12">📂</div>
+            <h2 class="text-5xl font-extrabold text-gray-800 dark:text-white mb-8">
+                No categories available yet
+            </h2>
+            <p class="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed mb-12">
+                We're constantly expanding our collections. New categories and products are added regularly by our trusted sellers.
+            </p>
+            <a href="{% url 'products:product_list' %}"
+               class="inline-block bg-gradient-to-r from-pink-600 to-purple-700 text-white px-12 py-6 rounded-2xl font-extrabold text-xl shadow-2xl hover:shadow-3xl transform hover:-translate-y-1 transition-all duration-300">
+                Browse All Products →
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

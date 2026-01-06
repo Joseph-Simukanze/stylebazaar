@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+{% load mathfilters %}
+{% load widget_tweaks %}
+
+
+{% block title %}Checkout | Style Bazaar{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-16 px-4">
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-16">
+            <h1 class="text-5xl md:text-6xl font-extrabold text-gray-900 dark:text-white mb-6">
+                Secure Checkout
+            </h1>
+            <p class="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8">
+                Complete your order in just a few steps
+            </p>
+            <div class="inline-flex items-center gap-3 text-lg text-gray-600 dark:text-gray-300">
+                <svg class="w-8 h-8 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+                <span class="font-medium">256-bit SSL Encrypted · Safe & Secure</span>
+            </div>
+        </div>
+
+        <div class="grid lg:grid-cols-3 gap-12">
+            <!-- Shipping Form -->
+            <div class="lg:col-span-2">
+                <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 md:p-12">
+                    <h2 class="text-4xl font-extrabold text-gray-900 dark:text-white mb-12">
+                        Shipping Information
+                    </h2>
+
+                    <form method="POST" id="checkout-form" class="space-y-10">
+                        {% csrf_token %}
+
+                        <!-- Full Name -->
+                        <div>
+                            <label class="block text-lg font-bold text-gray-800 dark:text-gray-200 mb-3">
+                                Full Name <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.full_name|add_class:"w-full px-6 py-4 text-lg rounded-2xl border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 transition" }}
+                            {% if form.full_name.errors %}
+                                <p class="text-red-600 dark:text-red-400 text-sm mt-2">{{ form.full_name.errors|join:", " }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Email -->
+                        <div>
+                            <label class="block text-lg font-bold text-gray-800 dark:text-gray-200 mb-3">
+                                Email Address <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.email|add_class:"w-full px-6 py-4 text-lg rounded-2xl border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 transition" }}
+                        </div>
+
+                        <!-- Phone -->
+                        {% if form.phone %}
+                        <div>
+                            <label class="block text-lg font-bold text-gray-800 dark:text-gray-200 mb-3">
+                                Phone Number <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.phone|add_class:"w-full px-6 py-4 text-lg rounded-2xl border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 transition" }}
+                        </div>
+                        {% endif %}
+
+                        <!-- Address -->
+                        <div>
+                            <label class="block text-lg font-bold text-gray-800 dark:text-gray-200 mb-3">
+                                Delivery Address <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.address|add_class:"w-full px-6 py-4 text-lg rounded-2xl border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 transition" }}
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-3">
+                                Street, house number, city, province
+                            </p>
+
+                            <button type="button" id="locate-me-btn"
+                                    class="mt-6 px-8 py-4 bg-pink-600 hover:bg-pink-700 text-white font-bold rounded-2xl shadow-lg flex items-center gap-3 transition-all duration-300">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                                Locate Me Automatically (GPS)
+                            </button>
+                            <p id="location-status" class="text-sm mt-4 font-medium"></p>
+                        </div>
+
+                        <!-- Delivery Options -->
+                        <div>
+                            <label class="block text-lg font-bold text-gray-800 dark:text-gray-200 mb-6">
+                                Delivery Option
+                            </label>
+                            <div class="space-y-5">
+                                {% for radio in form.delivery_option %}
+                                <label class="flex items-center p-6 bg-gray-50 dark:bg-gray-700/50 rounded-2xl cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 border-2 border-transparent has-[:checked]:border-pink-500 has-[:checked]:bg-pink-50 dark:has-[:checked]:bg-pink-900/20">
+                                    <div class="flex items-center gap-5 flex-1">
+                                        {{ radio.tag }}
+                                        <div class="flex-1">
+                                            <span class="text-xl font-bold text-gray-900 dark:text-white">
+                                                {{ radio.choice_label }}
+                                            </span>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                                Estimated: {{ radio.choice_label|split:"("|last }}
+                                            </p>
+                                        </div>
+                                        <span class="text-2xl font-extrabold text-pink-600 dark:text-pink-400">
+                                            K{{ radio.data.attrs.data-price }} ZMW
+                                        </span>
+                                    </div>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Submit -->
+                        <button type="submit"
+                                class="w-full mt-12 py-7 bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white text-3xl font-extrabold rounded-3xl shadow-2xl hover:shadow-3xl transform hover:-translate-y-1 transition-all duration-500 flex items-center justify-center gap-5">
+                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                            </svg>
+                            Complete Order & Pay
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Order Summary Sidebar -->
+            <div class="lg:col-span-1">
+                <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 md:p-10 sticky top-24">
+                    <h2 class="text-4xl font-extrabold text-gray-900 dark:text-white mb-10">
+                        Order Summary
+                    </h2>
+
+                    <div class="space-y-6 max-h-96 overflow-y-auto pr-2">
+                        {% for item in cart %}
+                        <div class="flex gap-5 pb-6 border-b border-gray-200 dark:border-gray-700 last:border-0">
+                            <div class="w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-2xl overflow-hidden shadow-lg flex-shrink-0">
+                                {% if item.product.main_image %}
+                                    <img src="{{ item.product.main_image.image.url }}" alt="{{ item.product.name }}" class="w-full h-full object-cover">
+                                {% else %}
+                                    <div class="w-full h-full flex items-center justify-center text-5xl">🛍️</div>
+                                {% endif %}
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-bold text-gray-900 dark:text-white text-lg line-clamp-2">{{ item.product.name }}</p>
+                                <p class="text-gray-600 dark:text-gray-400 mt-1">Qty: {{ item.quantity }}</p>
+                                <p class="text-2xl font-extrabold text-pink-600 dark:text-pink-400 mt-3">
+                                    K{{ item.total_price|floatformat:2 }} ZMW
+                                </p>
+                                {% if item.original_price and item.original_price > item.price %}
+                                <p class="text-sm text-gray-500 dark:text-gray-400 line-through">
+                                    K{{ item.original_price|mul:item.quantity|floatformat:2 }}
+                                </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="text-center text-gray-500 dark:text-gray-400 py-20 text-xl">Your cart is empty</p>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Totals -->
+                    <div class="mt-10 pt-8 border-t-4 border-gray-200 dark:border-gray-700 space-y-6">
+                        <div class="flex justify-between text-xl">
+                            <span class="text-gray-700 dark:text-gray-300 font-medium">Subtotal</span>
+                            <span class="font-bold text-gray-900 dark:text-white">
+                                K{{ cart.get_subtotal|floatformat:2 }} ZMW
+                            </span>
+                        </div>
+
+                        {% if cart.get_discount > 0 %}
+                        <div class="flex justify-between text-green-600 dark:text-green-400 font-bold text-xl">
+                            <span>Discount</span>
+                            <span>-K{{ cart.get_discount|floatformat:2 }} ZMW</span>
+                        </div>
+                        {% endif %}
+
+                        <div class="flex justify-between text-xl">
+                            <span class="text-gray-700 dark:text-gray-300 font-medium">Delivery</span>
+                            <span id="delivery-amount" class="font-bold text-gray-900 dark:text-white">
+                                K0.00 ZMW
+                            </span>
+                        </div>
+
+                        <div class="flex justify-between text-4xl font-extrabold pt-8 border-t-4 border-pink-500">
+                            <span class="text-gray-900 dark:text-white">Total</span>
+                            <span id="dynamic-total" class="text-pink-600 dark:text-pink-400">
+                                K{{ cart.get_total_price|floatformat:2 }} ZMW
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Delivery prices from choices (passed via custom form field)
+const deliveryPrices = {
+    {% for choice in form.delivery_option.field.choices %}
+        "{{ choice.0 }}": {{ choice.2|default:"0" }},
+    {% endfor %}
+};
+
+function updateTotal() {
+    const selected = document.querySelector('input[name="delivery_option"]:checked');
+    let deliveryCost = 0;
+
+    if (selected && deliveryPrices[selected.value] !== undefined) {
+        deliveryCost = parseFloat(deliveryPrices[selected.value]);
+    }
+
+    document.getElementById('delivery-amount').textContent = `K${deliveryCost.toFixed(2)} ZMW`;
+
+    const subtotal = parseFloat("{{ cart.get_subtotal }}");
+    const discount = parseFloat("{{ cart.get_discount|default:'0' }}");
+    const total = subtotal - discount + deliveryCost;
+
+    document.getElementById('dynamic-total').textContent = `K${total.toFixed(2)} ZMW`;
+}
+
+// Initial load + on change
+document.addEventListener('DOMContentLoaded', updateTotal);
+document.querySelectorAll('input[name="delivery_option"]').forEach(radio => {
+    radio.addEventListener('change', updateTotal);
+});
+
+// GPS Location
+document.getElementById('locate-me-btn').addEventListener('click', () => {
+    const status = document.getElementById('location-status');
+    status.textContent = 'Locating you...';
+    status.className = 'text-sm mt-4 font-medium text-blue-600 dark:text-blue-400';
+
+    if (!navigator.geolocation) {
+        status.textContent = 'Geolocation not supported by your browser.';
+        status.className = 'text-red-600 dark:text-red-400';
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+        async (position) => {
+            const lat = position.coords.latitude.toFixed(6);
+            const lon = position.coords.longitude.toFixed(6);
+
+            try {
+                const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`);
+                const data = await res.json();
+                const address = data.display_name || `${lat}, ${lon}`;
+                document.querySelector('#{{ form.address.id_for_label }}').value = address;
+                status.textContent = 'Location captured successfully!';
+                status.className = 'text-green-600 dark:text-green-400';
+            } catch {
+                document.querySelector('#{{ form.address.id_for_label }}').value = `${lat}, ${lon}`;
+                status.textContent = 'GPS coordinates captured';
+                status.className = 'text-yellow-600 dark:text-yellow-400';
+            }
+        },
+        () => {
+            status.textContent = 'Permission denied. Please allow location access.';
+            status.className = 'text-red-600 dark:text-red-400';
+        },
+        { timeout: 10000 }
+    );
+});
+</script>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Shop All Products | Style Bazaar{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8 px-4">
+    <div class="max-w-7xl mx-auto">
+        <h1 class="text-4xl font-bold text-gray-900 mb-8">Shop Products</h1>
+
+        <!-- Filters Row -->
+        <div class="mb-8 bg-white rounded-xl shadow p-6">
+            <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <input type="text" name="q" value="{{ search_query }}" placeholder="Search products..." 
+                       class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500">
+
+                <select name="category" class="px-4 py-2 border rounded-lg">
+                    <option value="">All Categories</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat.slug }}" {% if selected_category.slug == cat.slug %}selected{% endif %}>
+                        {{ cat.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+
+                <input type="number" name="min_price" value="{{ min_price }}" placeholder="Min Price" 
+                       class="px-4 py-2 border rounded-lg">
+
+                <input type="number" name="max_price" value="{{ max_price }}" placeholder="Max Price" 
+                       class="px-4 py-2 border rounded-lg">
+
+                <button type="submit" class="md:col-span-4 bg-pink-600 text-white py-2 rounded-lg hover:bg-pink-700">
+                    Apply Filters
+                </button>
+            </form>
+        </div>
+
+        <!-- Products Grid -->
+        {% if products %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {% for product in products %}
+            <a href="{% url 'products:product_detail' product.slug %}" class="group block">
+                <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300">
+                    {% if product.main_image %}
+                    <img src="{{ product.main_image.url }}" alt="{{ product.name }}"
+                         class="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300">
+                    {% else %}
+                    <div class="w-full h-64 bg-gray-200 flex items-center justify-center text-gray-400">
+                        No Image
+                    </div>
+                    {% endif %}
+
+                    <div class="p-6">
+                        <h3 class="font-semibold text-lg text-gray-900 group-hover:text-pink-600">
+                            {{ product.name }}
+                        </h3>
+                        <p class="text-sm text-gray-600 mt-1">{{ product.category.name }}</p>
+                        <p class="text-2xl font-bold text-pink-600 mt-4">K{{ product.price }} ZMW</p>
+                        <p class="text-sm text-gray-500 mt-2">by {{ product.seller.get_full_name|default:product.seller.username }}</p>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-center text-gray-600 text-xl py-16">No products found matching your filters.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% block title %}Shop Products | Style Bazaar{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-16 px-4 transition-all duration-700 ease-in-out">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-16 transition-colors duration-500">
+            <h1 class="text-5xl md:text-6xl font-extrabold text-gray-900 dark:text-white mb-6">
+                Shop Products
+            </h1>
+            <p class="text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                Discover premium beauty, fashion, and lifestyle items from trusted sellers
+            </p>
+        </div>
+
+        {% if products %}
+        <!-- Product Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {% for product in products %}
+            <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 overflow-hidden flex flex-col group relative">
+                <!-- Product Image + Badges -->
+                <div class="relative cursor-pointer" onclick="openGallery({{ product.id }})">
+                    {% with image=product.images.first %}
+                    {% if image %}
+                    <img src="{{ image.image.url }}"
+                         alt="{{ product.name }}"
+                         class="w-full h-72 object-cover group-hover:scale-110 transition-transform duration-700">
+                    {% else %}
+                    <div class="w-full h-72 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center">
+                        <span class="text-7xl text-gray-400 dark:text-gray-600">✨</span>
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+
+                    <!-- SALE Badge (Top Left) -->
+                    {% if product.has_savings %}
+                    <div class="absolute top-4 left-4 bg-gradient-to-r from-red-600 to-pink-600 text-white px-5 py-2.5 rounded-full text-base font-extrabold shadow-xl flex items-center gap-2 animate-pulse z-10">
+                        <span>SALE</span>
+                    </div>
+                    {% endif %}
+
+                    <!-- Stock Badge (Top Right) -->
+                    <div class="absolute top-4 right-4 z-10">
+                        {% if product.stock > 0 %}
+                            {% if product.stock <= 5 %}
+                            <span class="px-4 py-2 text-sm font-bold rounded-full bg-orange-500 text-white shadow-lg animate-pulse">
+                                Only {{ product.stock }} left!
+                            </span>
+                            {% else %}
+                            <span class="px-4 py-2 text-sm font-bold rounded-full bg-green-600 text-white shadow">
+                                In Stock
+                            </span>
+                            {% endif %}
+                        {% else %}
+                            <span class="px-4 py-2 text-sm font-bold rounded-full bg-red-600 text-white shadow">
+                                Out of Stock
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Product Details -->
+                <div class="p-7 flex flex-col flex-grow">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white line-clamp-2 mb-3 leading-tight">
+                        {{ product.name }}
+                    </h2>
+
+                    <p class="text-base text-gray-600 dark:text-gray-400 mb-5">
+                        {{ product.category.name|default:"Uncategorized" }} • by 
+                        <span class="font-medium text-primary">{{ product.seller.get_full_name|default:product.seller.username }}</span>
+                    </p>
+
+                    <!-- Pricing Section -->
+                    <div class="mb-6 flex-grow">
+                        {% if product.has_savings %}
+                        <!-- On Sale -->
+                        <div class="space-y-3">
+                            <!-- Main Price + Original Price -->
+                            <div class="flex items-end gap-4">
+                                <p class="text-4xl font-extrabold text-primary">
+                                    K{{ product.current_price|floatformat:2 }} ZMW
+                                </p>
+                                <p class="text-xl text-gray-500 dark:text-gray-400 line-through mb-1">
+                                    K{{ product.price|floatformat:2 }}
+                                </p>
+                            </div>
+
+                            <!-- You Save + Discount Badge -->
+                            <div class="flex flex-wrap items-center gap-4">
+                                <span class="text-lg font-bold text-green-600 dark:text-green-400">
+                                    You save K{{ product.savings_amount|floatformat:2 }}!
+                                </span>
+
+                                {% if product.has_active_promotion %}
+                                <span class="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-5 py-2 rounded-full text-base font-bold shadow-lg">
+                                    {% with promo=product.active_promotion %}
+                                        {% if promo.discount_type == 'percentage' %}
+                                            {{ promo.discount_value|floatformat:0 }}% OFF
+                                        {% else %}
+                                            K{{ promo.discount_value|floatformat:2 }} OFF
+                                        {% endif %}
+                                    {% endwith %}
+                                </span>
+                                {% endif %}
+
+                                {% if product.active_promotion.title %}
+                                <span class="text-sm italic text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
+                                    "{{ product.active_promotion.title }}"
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% else %}
+                        <!-- Regular Price -->
+                        <p class="text-4xl font-extrabold text-primary">
+                            K{{ product.current_price|floatformat:2 }} ZMW
+                        </p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Add to Cart Button -->
+                    <div class="mt-auto">
+                        {% if product.stock > 0 %}
+                        <form action="{% url 'cart_add' product.id %}" method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="quantity" value="1">
+                            <button type="submit"
+                                    class="w-full bg-gradient-to-r from-pink-600 to-purple-700 hover:from-pink-700 hover:to-purple-800 text-white font-extrabold text-xl py-5 rounded-2xl transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-1">
+                                Add to Cart →
+                            </button>
+                        </form>
+                        {% else %}
+                        <button disabled
+                                class="w-full bg-gray-400 dark:bg-gray-600 text-gray-200 dark:text-gray-400 font-bold text-xl py-5 rounded-2xl cursor-not-allowed">
+                            Out of Stock
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Image Gallery Modal -->
+            <div id="gallery-{{ product.id }}"
+                 class="fixed inset-0 bg-black/95 hidden z-50 flex items-center justify-center p-8 transition-opacity duration-300"
+                 onclick="if(event.target === this) closeGallery({{ product.id }})">
+                <div class="bg-white dark:bg-gray-800 rounded-3xl max-w-6xl w-full max-h-full overflow-hidden shadow-3xl relative">
+                    <button onclick="closeGallery({{ product.id }})"
+                            class="absolute top-6 right-6 text-white bg-black/50 hover:bg-black/70 rounded-full w-14 h-14 flex items-center justify-center text-4xl z-20 transition">
+                        ×
+                    </button>
+
+                    <div class="relative">
+                        {% if product.images.first %}
+                        <img id="main-image-{{ product.id }}"
+                             src="{{ product.images.first.image.url }}"
+                             alt="{{ product.name }}"
+                             class="w-full max-h-[80vh] object-contain">
+                        {% endif %}
+                    </div>
+
+                    {% if product.images.all|length > 1 %}
+                    <div class="p-8 bg-gray-100 dark:bg-gray-900">
+                        <div class="grid grid-cols-4 md:grid-cols-6 gap-4">
+                            {% for img in product.images.all %}
+                            <img src="{{ img.image.url }}"
+                                 alt="Thumbnail {{ forloop.counter }}"
+                                 class="w-full h-32 object-cover rounded-2xl cursor-pointer border-4 transition-all hover:border-primary
+                                        {% if forloop.first %}border-primary shadow-lg{% else %}border-transparent hover:border-primary/50{% endif %}"
+                                 onclick="setMainImage('{{ product.id }}', '{{ img.image.url }}')">
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% else %}
+        <!-- Empty State -->
+        <div class="text-center py-40">
+            <div class="text-9xl mb-12 opacity-60">🛍️</div>
+            <h3 class="text-5xl font-extrabold text-gray-800 dark:text-gray-100 mb-8">
+                No products available yet
+            </h3>
+            <p class="text-2xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
+                We're working hard to bring you amazing items. Check back soon — new products are added daily!
+            </p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Gallery JavaScript -->
+<script>
+function openGallery(id) {
+    const gallery = document.getElementById(`gallery-${id}`);
+    gallery.classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+}
+
+function closeGallery(id) {
+    const gallery = document.getElementById(`gallery-${id}`);
+    gallery.classList.add("hidden");
+    document.body.style.overflow = "auto";
+}
+
+function setMainImage(id, url) {
+    document.getElementById(`main-image-${id}`).src = url;
+}
+</script>
+{% endblock %}

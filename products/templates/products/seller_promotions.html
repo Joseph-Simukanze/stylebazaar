@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Promotions | Style Bazaar{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-16 px-4 transition-all duration-700 ease-in-out">
+    <div class="max-w-7xl mx-auto">
+        <!-- Page Header -->
+        <div class="text-center mb-16 transition-colors duration-500">
+            <h1 class="text-5xl md:text-6xl font-extrabold text-gray-900 dark:text-white mb-6 transition-colors duration-500">
+                Product Promotions
+            </h1>
+            <p class="text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto transition-colors duration-500">
+                Boost your sales by creating special offers, discounts, and limited-time deals for your products.
+            </p>
+        </div>
+
+        {% if products %}
+        <!-- Promotions Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {% for product in products %}
+            <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-500 group">
+                <!-- Product Image -->
+                <div class="relative h-64 overflow-hidden bg-gray-100 dark:bg-gray-700">
+                    {% if product.image %}
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}"
+                         class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                    {% else %}
+                    <div class="w-full h-full flex items-center justify-center">
+                        <span class="text-9xl text-gray-300 dark:text-gray-600">📦</span>
+                    </div>
+                    {% endif %}
+
+                    <!-- Promotion Badge (Top Right) -->
+                    {% if product.on_promotion %}
+                    <div class="absolute top-4 right-4 bg-primary text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg animate-pulse">
+                        On Promotion
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Product Info & Action -->
+                <div class="p-8 transition-all duration-500">
+                    <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4 line-clamp-2">
+                        {{ product.name }}
+                    </h3>
+
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Current Price</p>
+                            <p class="text-3xl font-extrabold text-primary">
+                                K{{ product.price|floatformat:2 }}
+                            </p>
+                        </div>
+                        <div class="text-right">
+                            {% if product.original_price and product.original_price > product.price %}
+                            <p class="text-sm text-gray-500 dark:text-gray-400 line-through">
+                                K{{ product.original_price|floatformat:2 }}
+                            </p>
+                            <p class="text-sm font-bold text-green-600 dark:text-green-400">
+                                {{ product.discount_percentage|floatformat:0 }}% OFF
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Action Button -->
+                    <a href="{% url 'products:add_promotion' product.id %}"
+                       class="block w-full text-center bg-primary text-white py-4 rounded-2xl font-bold text-lg hover:bg-primary-hover transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                        {% if product.on_promotion %}
+                        Edit Promotion
+                        {% else %}
+                        Add Promotion
+                        {% endif %}
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <!-- Empty State -->
+        <div class="text-center py-32 transition-all duration-700">
+            <div class="text-9xl mb-10 opacity-70">🎁</div>
+            <h2 class="text-4xl font-extrabold text-gray-800 dark:text-gray-100 mb-6">
+                No products available
+            </h2>
+            <p class="text-xl text-gray-600 dark:text-gray-300 max-w-md mx-auto leading-relaxed mb-10">
+                Start adding products to your store and create exciting promotions to attract more buyers!
+            </p>
+            <a href="{% url 'products:product_create' %}"
+               class="inline-flex items-center gap-3 px-8 py-5 bg-primary text-white font-bold text-xl rounded-2xl hover:bg-primary-hover transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-1">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Add Your First Product
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

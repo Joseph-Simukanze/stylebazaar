@@ -1,0 +1,303 @@
+{% extends "admin/base_admin.html" %}
+{% load static %}
+
+{% block title %}Admin Dashboard | Style Bazaar{% endblock %}
+
+{% block extrastyle %}
+<style>
+    /* Premium Gradient Cards with Depth */
+    .dashboard-card {
+        background: linear-gradient(135deg, #ec4899 0%, #a855f7 100%);
+        color: white;
+        border-radius: 2rem;
+        padding: 3rem;
+        box-shadow: 0 25px 50px rgba(236, 72, 153, 0.25);
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .dashboard-card::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.15) 0%, transparent 50%);
+        opacity: 0;
+        transition: opacity 0.6s ease;
+    }
+    .dashboard-card:hover::before {
+        opacity: 1;
+    }
+    .dashboard-card:hover {
+        transform: translateY(-16px) scale(1.03);
+        box-shadow: 0 40px 80px rgba(236, 72, 153, 0.35);
+    }
+
+    /* Stats Typography */
+    .stat-number {
+        font-size: 4.5rem;
+        font-weight: 900;
+        line-height: 1;
+        text-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        letter-spacing: -2px;
+    }
+    .stat-label {
+        font-size: 1.3rem;
+        opacity: 0.95;
+        margin-bottom: 1rem;
+        letter-spacing: 1px;
+        font-weight: 600;
+    }
+
+    /* Chart Container */
+    .chart-container {
+        background: white;
+        dark:bg-gray-800;
+        border-radius: 2.5rem;
+        padding: 4rem;
+        box-shadow: 0 30px 60px rgba(0,0,0,0.1);
+        border: 1px solid #e5e7eb;
+        dark:border-gray-700;
+        backdrop-filter: blur(10px);
+    }
+
+    /* Table Enhancements */
+    .orders-table thead {
+        background: linear-gradient(to right, rgba(236, 72, 153, 0.1), rgba(168, 85, 247, 0.1));
+        dark:background: linear-gradient(to right, rgba(236, 72, 153, 0.2), rgba(168, 85, 247, 0.2));
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-pink-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-pink-900/20 py-16 px-4">
+    <div class="max-w-7xl mx-auto">
+
+        <!-- Hero Section -->
+        <div class="text-center mb-24 pt-12">
+            <div class="inline-flex items-center justify-center w-48 h-48 bg-gradient-to-br from-pink-500 via-purple-600 to-indigo-600 rounded-full shadow-2xl mb-12 animate-pulse">
+                <svg class="w-24 h-24 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+                </svg>
+            </div>
+            <h1 class="text-7xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 mb-8 tracking-tight">
+                Style Bazaar Admin
+            </h1>
+            <p class="text-2xl md:text-3xl text-gray-700 dark:text-gray-300 max-w-4xl mx-auto leading-relaxed font-light">
+                Your powerful control center for managing the entire marketplace experience
+            </p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 mb-32">
+            <div class="dashboard-card">
+                <p class="stat-label">Total Revenue</p>
+                <p class="stat-number">K{{ total_revenue|floatformat:2 }}</p>
+                <p class="text-xl opacity-90 mt-6">Lifetime earnings</p>
+            </div>
+
+            <div class="dashboard-card">
+                <p class="stat-label">Total Orders</p>
+                <p class="stat-number">{{ total_orders }}</p>
+                <p class="text-xl opacity-90 mt-6">
+                    {{ paid_orders }} paid • {{ total_orders|sub:paid_orders }} processing
+                </p>
+            </div>
+
+            <div class="dashboard-card">
+                <p class="stat-label">Products</p>
+                <p class="stat-number">{{ total_products }}</p>
+                <p class="text-xl opacity-90 mt-6">
+                    {{ pending_approval }} pending approval
+                </p>
+            </div>
+
+            <div class="dashboard-card">
+                <p class="stat-label">Community</p>
+                <p class="stat-number">{{ total_users }}</p>
+                <p class="text-xl opacity-90 mt-6">
+                    {{ total_sellers }} active sellers
+                </p>
+            </div>
+        </div>
+
+        <!-- Revenue Chart -->
+        <div class="mb-32 chart-container">
+            <h2 class="text-5xl font-extrabold text-center text-gray-900 dark:text-white mb-16">
+                Revenue Growth Trend
+            </h2>
+            <div class="relative">
+                <canvas id="revenueChart" height="160"></canvas>
+            </div>
+        </div>
+
+        <!-- Recent Orders -->
+        <div class="mb-32">
+            <h2 class="text-5xl font-extrabold text-center text-gray-900 dark:text-white mb-16">
+                Latest Orders
+            </h2>
+            <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-700">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="orders-table">
+                            <tr>
+                                <th class="px-12 py-8 text-left text-base font-bold text-gray-700 dark:text-gray-300 uppercase tracking-widest">Order ID</th>
+                                <th class="px-12 py-8 text-left text-base font-bold text-gray-700 dark:text-gray-300 uppercase tracking-widest">Customer</th>
+                                <th class="px-12 py-8 text-left text-base font-bold text-gray-700 dark:text-gray-300 uppercase tracking-widest">Amount</th>
+                                <th class="px-12 py-8 text-left text-base font-bold text-gray-700 dark:text-gray-300 uppercase tracking-widest">Status</th>
+                                <th class="px-12 py-8 text-left text-base font-bold text-gray-700 dark:text-gray-300 uppercase tracking-widest">Date & Time</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                            {% for order in recent_orders %}
+                            <tr class="hover:bg-gradient-to-r hover:from-pink-50/40 hover:to-purple-50/40 dark:hover:from-pink-900/20 dark:hover:to-purple-900/20 transition duration-300">
+                                <td class="px-12 py-10">
+                                    <a href="{% url 'admin:orders_order_change' order.id %}" 
+                                       class="font-black text-3xl text-pink-600 dark:text-pink-400 hover:underline hover:text-pink-700 dark:hover:text-pink-300">
+                                        #{{ order.id }}
+                                    </a>
+                                </td>
+                                <td class="px-12 py-10">
+                                    <div>
+                                        <p class="font-bold text-2xl text-gray-900 dark:text-white">
+                                            {{ order.buyer.get_full_name|default:order.buyer.username }}
+                                        </p>
+                                        <p class="text-lg text-gray-600 dark:text-gray-400 mt-2">{{ order.buyer.email }}</p>
+                                    </div>
+                                </td>
+                                <td class="px-12 py-10">
+                                    <p class="font-black text-4xl text-pink-600 dark:text-pink-400">
+                                        K{{ order.get_grand_total|floatformat:2 }}
+                                    </p>
+                                </td>
+                                <td class="px-12 py-10">
+                                    <span class="inline-flex px-8 py-4 rounded-full text-lg font-bold tracking-wider
+                                        {% if order.is_paid %}
+                                            bg-green-100 text-green-800 dark:bg-green-900/60 dark:text-green-300
+                                        {% elif order.status == 'cancelled' %}
+                                            bg-red-100 text-red-800 dark:bg-red-900/60 dark:text-red-300
+                                        {% else %}
+                                            bg-yellow-100 text-yellow-800 dark:bg-yellow-900/60 dark:text-yellow-300
+                                        {% endif %}">
+                                        {{ order.get_status_display|upper }}
+                                    </span>
+                                </td>
+                                <td class="px-12 py-10">
+                                    <div class="text-2xl font-bold text-gray-900 dark:text-white">
+                                        {{ order.created_at|date:"M d, Y" }}
+                                    </div>
+                                    <div class="text-lg text-gray-600 dark:text-gray-400 mt-2">
+                                        {{ order.created_at|time:"H:i" }}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-40">
+                                    <div class="text-9xl mb-12 opacity-20">🛍️</div>
+                                    <p class="text-5xl font-black text-gray-700 dark:text-gray-300 mb-8">
+                                        No orders yet
+                                    </p>
+                                    <p class="text-2xl text-gray-500 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
+                                        Your marketplace is primed and ready. The first sale is just moments away — keep building!
+                                    </p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Management Section -->
+        <div class="mt-40 pb-20">
+            <h2 class="text-6xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-purple-600 mb-20">
+                Manage Your Marketplace
+            </h2>
+            <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-16 border border-gray-200 dark:border-gray-700">
+                {% block app_list %}
+                    {{ block.super }}
+                {% endblock %}
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('revenueChart').getContext('2d');
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ monthly_labels|safe }},
+            datasets: [{
+                label: 'Revenue (K ZMW)',
+                data: {{ monthly_data|safe }},
+                backgroundColor: 'rgba(236, 72, 153, 0.15)',
+                borderColor: '#ec4899',
+                borderWidth: 6,
+                pointBackgroundColor: '#ec4899',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 4,
+                pointRadius: 10,
+                pointHoverRadius: 14,
+                tension: 0.5,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0,0,0,0.95)',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    cornerRadius: 20,
+                    displayColors: false,
+                    titleFont: { size: 20, weight: 'bold' },
+                    bodyFont: { size: 18 },
+                    padding: 16
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { 
+                        color: 'rgba(0,0,0,0.05)', 
+                        dark:color: 'rgba(255,255,255,0.05)' 
+                    },
+                    ticks: { 
+                        color: '#6b7280',
+                        dark:color: '#9ca3af',
+                        font: { size: 16 },
+                        padding: 20
+                    }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { 
+                        color: '#6b7280',
+                        dark:color: '#9ca3af',
+                        font: { size: 16 },
+                        padding: 20
+                    }
+                }
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

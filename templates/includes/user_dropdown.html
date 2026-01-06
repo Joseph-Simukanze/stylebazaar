@@ -1,0 +1,19 @@
+<div class="relative group">
+    <button class="font-semibold">
+        {{ user.username }} ▼
+    </button>
+
+    <div class="absolute right-0 hidden group-hover:block bg-white shadow rounded w-40">
+        {% if user.is_seller %}
+            <a href="{% url 'seller_products' %}" class="block px-4 py-2 hover:bg-gray-100">
+                Seller Dashboard
+            </a>
+        {% endif %}
+        <a href="{% url 'orders:order_list' %}" class="block px-4 py-2 hover:bg-gray-100">
+            My Orders
+        </a>
+        <a href="{% url 'users:logout' %}" class="block px-4 py-2 text-red-500">
+            Logout
+        </a>
+    </div>
+</div>

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="text-2xl font-bold mb-4">Pay for Order #{{ order.id }}</h2>
+
+<script src="https://js.stripe.com/v3/"></script>
+
+<button id="pay-btn"
+        class="bg-pink-600 text-white px-6 py-3 rounded">
+    Pay ${{ order.get_total_price }}
+</button>
+
+<script>
+const stripe = Stripe("{{ stripe_public_key }}");
+
+document.getElementById("pay-btn").onclick = function () {
+    stripe.confirmCardPayment("{{ client_secret }}", {
+        payment_method: {
+            card: {
+                token: "tok_visa"
+            }
+        }
+    }).then(function (result) {
+        if (result.paymentIntent.status === "succeeded") {
+            window.location.href = "/";
+        }
+    });
+};
+</script>
+{% endblock %}

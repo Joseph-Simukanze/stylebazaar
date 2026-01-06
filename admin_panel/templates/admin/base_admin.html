@@ -1,0 +1,187 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Style Bazaar Admin{% endblock %}</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#ec4899',
+                        secondary: '#a855f7',
+                        accent: '#c084fc',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'glow': '0 0 80px rgba(236, 72, 153, 0.4)',
+                    },
+                    animation: {
+                        'float': 'float 8s ease-in-out infinite',
+                        'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-24px)' },
+                        },
+                        'pulse-glow': {
+                            '0%, 100%': { boxShadow: '0 0 20px rgba(236, 72, 153, 0.3)' },
+                            '50%': { boxShadow: '0 0 60px rgba(236, 72, 153, 0.6)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        .gradient-primary {
+            background: linear-gradient(135deg, #ec4899 0%, #a855f7 50%, #7c3aed 100%);
+        }
+        .text-gradient {
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .floating-orb {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(236, 72, 153, 0.35), transparent);
+            pointer-events: none;
+            animation: float 10s ease-in-out infinite;
+        }
+        .nav-link {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .nav-link:hover {
+            color: white;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            width: 0;
+            height: 3px;
+            background: white;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+        .nav-link:hover::after, .nav-link.active::after {
+            width: 100%;
+        }
+    </style>
+
+    {% block extrahead %}{% endblock %}
+</head>
+<body class="bg-gradient-to-br from-gray-900 via-purple-900/30 to-pink-900/30 text-gray-100 min-h-screen">
+
+    <!-- Floating Background Orbs -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <div class="floating-orb w-[600px] h-[600px] top-10 left-10 opacity-30"></div>
+        <div class="floating-orb w-[500px] h-[500px] bottom-20 right-20 opacity-25 delay-1000"></div>
+        <div class="floating-orb w-[400px] h-[400px] top-1/3 left-1/3 opacity-20 delay-2000"></div>
+    </div>
+
+    <!-- Fixed Top Navbar -->
+    <header class="gradient-primary shadow-2xl fixed top-0 left-0 right-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
+            <!-- Logo & Brand -->
+            <div class="flex items-center space-x-8">
+                <a href="{% url 'admin:index' %}" class="flex items-center space-x-5 group">
+                    <div class="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center shadow-glow group-hover:shadow-glow animate-pulse-glow">
+                        <i class="fas fa-gem text-3xl text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-4xl font-black text-white">Style Bazaar</h1>
+                        <p class="text-sm opacity-90 -mt-1">Admin Panel</p>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Navigation Links -->
+           <!-- Navigation Links -->
+<div class="hidden lg:flex items-center space-x-10">
+    <a href="{% url 'admin:index' %}" 
+       class="nav-link text-xl font-semibold {% if request.resolver_match.url_name == 'index' %}active{% endif %}">
+        Dashboard
+    </a>
+    <a href="{% url 'admin:products_product_changelist' %}" 
+       class="nav-link text-xl font-semibold">
+        Products
+    </a>
+    <a href="{% url 'admin:orders_order_changelist' %}" 
+       class="nav-link text-xl font-semibold">
+        Orders
+    </a>
+
+    <!-- Only show "Users" link in main admin (staff/superuser) -->
+    {% if 'main_admin' in request.path %}
+    <a href="{% url 'main_admin:auth_user_changelist' %}" 
+       class="nav-link text-xl font-semibold">
+        Users
+    </a>
+    {% endif %}
+</div>
+
+            <!-- User Section -->
+            <div class="flex items-center space-x-8">
+                <div class="text-right">
+                    <p class="text-sm opacity-80">Welcome back</p>
+                    <p class="text-2xl font-bold">{{ user.get_full_name|default:user.username }}</p>
+                </div>
+                <a href="{% url 'admin:logout' %}" 
+                   class="bg-white/20 hover:bg-white/30 backdrop-blur-lg px-8 py-4 rounded-2xl font-bold text-xl shadow-glow hover:shadow-glow transition-all duration-500 hover:scale-110 flex items-center gap-4">
+                    <i class="fas fa-sign-out-alt text-2xl"></i>
+                    Logout
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="relative z-10 pt-32 pb-24 px-6 max-w-7xl mx-auto">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="gradient-primary py-16 mt-32">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <p class="text-2xl opacity-90">
+                &copy; 2026 <span class="font-black">Style Bazaar</span>. All rights reserved.
+            </p>
+            <p class="mt-6 text-xl opacity-80">
+                Made with <i class="fas fa-heart text-red-400 animate-pulse mx-2"></i> in Zambia
+            </p>
+        </div>
+    </footer>
+
+    {% block extrajs %}{% endblock %}
+</body>
+</html>

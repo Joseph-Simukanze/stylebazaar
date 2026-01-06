@@ -1,0 +1,8 @@
+<form method="GET" action="{% url 'product_list' %}" class="mb-6">
+    <input
+        type="text"
+        name="q"
+        placeholder="Search products..."
+        value="{{ request.GET.q }}"
+        class="w-full border rounded px-4 py-2 focus:outline-none">
+</form>

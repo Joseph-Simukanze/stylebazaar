@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% block title %}
+    {% if promotion %}Edit{% else %}Add{% endif %} Promotion - {{ product.name }} | Style Bazaar
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-16 px-4 transition-all duration-700 ease-in-out">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-16 transition-colors duration-500">
+            <h1 class="text-5xl md:text-6xl font-extrabold text-gray-900 dark:text-white mb-6 transition-colors duration-500">
+                {% if promotion %}Edit Promotion{% else %}Create New Promotion{% endif %}
+            </h1>
+            <p class="text-xl md:text-2xl text-gray-600 dark:text-gray-300 transition-colors duration-500">
+                For: <span class="font-bold text-primary">{{ product.name }}</span>
+            </p>
+        </div>
+
+        <!-- Product Preview Card -->
+        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-10 mb-12 flex flex-col md:flex-row items-center gap-10 transition-all duration-700">
+            <div class="flex-shrink-0">
+                {% if product.image %}
+                <img src="{{ product.image.url }}" alt="{{ product.name }}" 
+                     class="w-64 h-64 object-cover rounded-2xl shadow-lg">
+                {% else %}
+                <div class="w-64 h-64 bg-gray-200 dark:bg-gray-700 rounded-2xl flex items-center justify-center">
+                    <span class="text-9xl text-gray-400 dark:text-gray-600">📦</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="text-center md:text-left flex-1">
+                <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white mb-4">
+                    {{ product.name }}
+                </h2>
+                <div class="space-y-3">
+                    <p class="text-lg text-gray-600 dark:text-gray-400">
+                        Original Price: 
+                        <span class="text-2xl font-bold text-gray-700 dark:text-gray-300 line-through">
+                            K{{ product.price|floatformat:2 }}
+                        </span>
+                    </p>
+
+                    {% if promotion %}
+                    <div class="inline-block bg-green-50 dark:bg-green-900/30 px-6 py-4 rounded-2xl border border-green-200 dark:border-green-800">
+                        <p class="text-sm font-medium text-green-700 dark:text-green-300">Current Promotional Price</p>
+                        <p class="text-4xl font-extrabold text-green-600 dark:text-green-400">
+                            K{{ promotion.discounted_price|floatformat:2 }}
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Promotion Form -->
+        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-10 transition-all duration-700">
+            <form method="post" class="space-y-10">
+                {% csrf_token %}
+
+                <!-- Discount Type & Value -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <label class="block text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">
+                            Discount Type <span class="text-red-500">*</span>
+                        </label>
+                        <select name="discount_type" required
+                                class="w-full px-6 py-5 border-2 border-gray-300 dark:border-gray-600 rounded-2xl text-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-300">
+                            <option value="percentage" {% if promotion.discount_type == 'percentage' or not promotion %}selected{% endif %}>
+                                Percentage Off (%)
+                            </option>
+                            <option value="fixed" {% if promotion.discount_type == 'fixed' %}selected{% endif %}>
+                                Fixed Amount Off (K)
+                            </option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">
+                            Discount Value <span class="text-red-500">*</span>
+                        </label>
+                        <input type="number" name="discount_value" value="{{ promotion.discount_value|default:'' }}" 
+                               step="0.01" min="0.01" required placeholder="e.g., 25 for 25% or 100 for K100 off"
+                               class="w-full px-6 py-5 border-2 border-gray-300 dark:border-gray-600 rounded-2xl text-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-300">
+                    </div>
+                </div>
+
+                <!-- Date Range -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <label class="block text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">
+                            Start Date <span class="text-red-500">*</span>
+                        </label>
+                        <input type="date" name="start_date" value="{{ promotion.start_date|date:'Y-m-d'|default_if_none:'' }}" required
+                               class="w-full px-6 py-5 border-2 border-gray-300 dark:border-gray-600 rounded-2xl text-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-300">
+                    </div>
+
+                    <div>
+                        <label class="block text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">
+                            End Date <span class="text-gray-500">(Optional)</span>
+                        </label>
+                        <input type="date" name="end_date" value="{{ promotion.end_date|date:'Y-m-d'|default_if_none:'' }}"
+                               class="w-full px-6 py-5 border-2 border-gray-300 dark:border-gray-600 rounded-2xl text-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-300">
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-3">Leave blank for an ongoing promotion</p>
+                    </div>
+                </div>
+
+                <!-- Promotion Title -->
+                <div>
+                    <label class="block text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">
+                        Promotion Title <span class="text-gray-500">(Optional)</span>
+                    </label>
+                    <input type="text" name="title" value="{{ promotion.title|default:'' }}" maxlength="100"
+                           placeholder="e.g., New Year Flash Sale – 30% Off!"
+                           class="w-full px-6 py-5 border-2 border-gray-300 dark:border-gray-600 rounded-2xl text-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-300">
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-3">Appears on product page and notifications</p>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-6 pt-8 border-t border-gray-200 dark:border-gray-700">
+                    <a href="{% url 'products:promotions_list' %}" 
+                       class="text-primary font-bold text-lg hover:text-primary-hover transition-colors">
+                        ← Cancel & Back to List
+                    </a>
+
+                    <button type="submit"
+                            class="px-12 py-6 bg-primary text-white rounded-2xl font-extrabold text-xl shadow-xl hover:bg-primary-hover hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300">
+                        {% if promotion %}Update Promotion{% else %}Create Promotion{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        {% if promotion %}
+        <!-- Remove Promotion -->
+        <div class="mt-12 text-center transition-all duration-500">
+            <form method="post" action="{% url 'promotions:remove_promotion' product.id %}" class="inline">
+                {% csrf_token %}
+                <button type="submit" 
+                        onclick="return confirm('Are you sure you want to remove this promotion?\nThe product price will revert to K{{ product.price|floatformat:2 }}.')"
+                        class="text-red-600 dark:text-red-400 font-bold text-lg hover:text-red-700 dark:hover:text-red-300 transition-colors underline">
+                    Remove This Promotion
+                </button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

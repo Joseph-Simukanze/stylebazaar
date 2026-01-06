@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% load mathfilters %}
+
+{% block title %}Your Cart | Style Bazaar{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-20">
+    <h1 class="text-4xl md:text-6xl font-extrabold text-gray-900 dark:text-white mb-12 text-center md:text-left">
+        Your Shopping Cart
+    </h1>
+
+    {% if cart|length == 0 %}
+    <!-- Empty Cart State -->
+    <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-12 md:p-24 text-center max-w-3xl mx-auto">
+        <div class="text-9xl mb-10 text-gray-200 dark:text-gray-700">🛒</div>
+        
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white mb-6">
+            Your cart is empty
+        </h2>
+        <p class="text-xl text-gray-600 dark:text-gray-400 mb-12 max-w-lg mx-auto leading-relaxed">
+            Discover premium beauty, fashion, and lifestyle products waiting just for you.
+        </p>
+        <a href="{% url 'products:product_list' %}"
+           class="inline-block bg-gradient-to-r from-pink-600 to-purple-700 text-white px-12 py-5 rounded-2xl font-bold text-xl shadow-2xl hover:shadow-3xl hover:from-pink-700 hover:to-purple-800 transition-all duration-300 transform hover:-translate-y-1">
+            Start Shopping →
+        </a>
+    </div>
+
+    {% else %}
+    <!-- Cart with Items -->
+    <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl overflow-hidden">
+        <div class="divide-y divide-gray-200 dark:divide-gray-700">
+            {% for item in cart %}
+            <div class="p-6 md:p-8 hover:bg-pink-50/30 dark:hover:bg-pink-900/20 transition-all duration-300">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                    <!-- Product Image -->
+                    <div class="lg:col-span-2">
+                        {% with image=item.product.images.first %}
+                        {% if image %}
+                        <div class="relative rounded-2xl overflow-hidden shadow-lg w-full aspect-square max-w-32 mx-auto lg:mx-0">
+                            <img src="{{ image.image.url }}"
+                                 alt="{{ item.product.name }}"
+                                 class="w-full h-full object-cover hover:scale-110 transition-transform duration-500">
+                        </div>
+                        {% else %}
+                        <div class="w-full aspect-square max-w-32 bg-gradient-to-br from-pink-100 to-purple-100 dark:from-pink-900/50 dark:to-purple-900/50 rounded-2xl flex items-center justify-center text-5xl shadow-lg mx-auto lg:mx-0">
+                            ✨
+                        </div>
+                        {% endif %}
+                        {% endwith %}
+                    </div>
+
+                    <!-- Product Details -->
+                    <div class="lg:col-span-5 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white line-clamp-2">
+                                {{ item.product.name }}
+                            </h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                Sold by <span class="font-semibold text-primary">{{ item.product.seller.get_full_name|default:item.product.seller.username }}</span>
+                            </p>
+
+                            <!-- Promotion Badge -->
+                           <!-- Promotion Badge -->
+{% if item.active_promotion %}
+<div class="flex flex-wrap items-center gap-2 mt-2">
+    <span class="bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300 px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap">
+        {% if item.active_promotion.discount_type == 'percentage' %}
+            {{ item.active_promotion.discount_value }}% OFF
+        {% else %}
+            K{{ item.active_promotion.discount_value|floatformat:2 }} OFF
+        {% endif %}
+    </span>
+    {% if item.active_promotion.title %}
+    <span class="text-xs text-gray-600 dark:text-gray-400 italic line-clamp-2">
+        "{{ item.active_promotion.title }}"
+    </span>
+    {% endif %}
+</div>
+{% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Price -->
+                    <div class="lg:col-span-2 text-center lg:text-left">
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Unit Price</p>
+                        <div class="mt-1">
+                            {% if item.product.has_active_promotion or item.product.discounted_price %}
+                            <del class="text-sm text-gray-400">{{ item.product.price|floatformat:2 }}</del>
+                            <p class="text-2xl font-extrabold text-primary mt-1">
+                                K{{ item.unit_price|floatformat:2 }} ZMW
+                            </p>
+                            {% else %}
+                            <p class="text-2xl font-extrabold text-primary">
+                                K{{ item.unit_price|floatformat:2 }} ZMW
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Quantity -->
+                    <div class="lg:col-span-2 text-center">
+                        <p class="text-sm text-gray-600 dark:text-gray-400 font-medium mb-2">Quantity</p>
+                        <form action="{% url 'cart_update' item.product.id %}" method="post" class="flex items-center justify-center gap-4">
+                            {% csrf_token %}
+                            <button type="submit" name="action" value="decrease"
+                                    class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition"
+                                    {% if item.quantity <= 1 %}disabled{% endif %}>
+                                <span class="text-2xl font-bold text-gray-700 dark:text-gray-300">−</span>
+                            </button>
+
+                            <span class="text-2xl font-bold text-gray-900 dark:text-white w-16 text-center">
+                                {{ item.quantity }}
+                            </span>
+
+                            <button type="submit" name="action" value="increase"
+                                    class="w-10 h-10 rounded-full bg-primary text-white hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition"
+                                    {% if not item.product.is_in_stock %}disabled{% endif %}>
+                                <span class="text-2xl font-bold">+</span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Total & Remove -->
+                    <div class="lg:col-span-1 text-right">
+                        <p class="text-sm text-gray-600 dark:text-gray-400 font-medium">Total</p>
+                        <p class="text-2xl md:text-3xl font-extrabold text-primary mt-1">
+                            K{{ item.total_price|floatformat:2 }} ZMW
+                        </p>
+
+                        <!-- Savings -->
+                        {% if item.product.price > item.unit_price %}
+                        {% with savings_per_item=item.product.price|sub:item.unit_price %}
+                        <p class="text-sm font-bold text-green-600 dark:text-green-400 mt-3">
+                            Save K{{ savings_per_item|mul:item.quantity|floatformat:2 }}
+                        </p>
+                        {% endwith %}
+                        {% endif %}
+
+                        <a href="{% url 'cart_remove' item.product.id %}"
+                           class="block text-red-600 dark:text-red-400 hover:text-red-800 mt-4 text-sm font-medium hover:underline"
+                           onclick="return confirm('Remove {{ item.product.name|escapejs }} from cart?');">
+                            Remove
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Cart Summary -->
+        <div class="bg-gradient-to-r from-pink-50 via-purple-50 to-indigo-50 dark:from-pink-900/20 dark:via-purple-900/20 dark:to-indigo-900/20 p-8 md:p-12">
+            <div class="max-w-4xl mx-auto">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-8">
+                    <div class="text-center md:text-left">
+                        <h3 class="text-3xl md:text-4xl font-black text-gray-900 dark:text-white">
+                            Grand Total:
+                            <span class="text-primary ml-4 text-4xl md:text-5xl">
+                                K{{ cart.get_total_price|floatformat:2 }} ZMW
+                            </span>
+                        </h3>
+                        <p class="text-lg text-gray-600 dark:text-gray-400 mt-3">
+                            Taxes & delivery calculated at checkout
+                        </p>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-5 w-full sm:w-auto">
+                        <a href="{% url 'cart_clear' %}"
+                           class="px-10 py-4 rounded-xl border-2 border-red-500 text-red-700 dark:text-red-300 font-bold hover:bg-red-50 dark:hover:bg-red-900/30 transition text-center"
+                           onclick="return confirm('Empty your entire cart? This cannot be undone.');">
+                            Empty Cart
+                        </a>
+
+                        <a href="{% url 'orders:create_order' %}"
+                           class="px-14 py-5 bg-gradient-to-r from-pink-600 to-purple-700 text-white rounded-2xl font-extrabold text-xl shadow-2xl hover:shadow-3xl hover:from-pink-700 hover:to-purple-800 transition-all duration-300 transform hover:-translate-y-1 text-center">
+                            Proceed to Checkout →
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

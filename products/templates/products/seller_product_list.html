@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+{% block title %}Shop Products | Style Bazaar{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-16 px-4 transition-all duration-700 ease-in-out">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-16 transition-colors duration-500">
+            <h1 class="text-5xl md:text-6xl font-extrabold text-gray-900 dark:text-white mb-6">
+                Shop Products
+            </h1>
+            <p class="text-xl md:text-2xl text-gray-600 dark:text-gray-300">
+                Discover amazing beauty, fashion, and lifestyle items from trusted sellers
+            </p>
+        </div>
+
+        {% if products %}
+        <!-- Product Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {% for product in products %}
+            <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 overflow-hidden flex flex-col group">
+                <!-- Product Image + Badges -->
+                <div class="relative cursor-pointer" onclick="openGallery({{ product.id }})">
+                    {% with image=product.images.first %}
+                    {% if image %}
+                    <img src="{{ image.image.url }}"
+                         alt="{{ product.name }}"
+                         class="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-700">
+                    {% else %}
+                    <div class="w-full h-64 bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                        <span class="text-6xl text-gray-400 dark:text-gray-600">📦</span>
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+
+                    <!-- Promotion Badge (Top Left) -->
+                    {% if product.on_promotion and product.promotion.is_active %}
+                    <div class="absolute top-4 left-4 bg-primary text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg flex items-center gap-2 animate-pulse">
+                        <span>SALE</span>
+                    </div>
+                    {% endif %}
+
+                    <!-- Stock Badge (Top Right) -->
+                    <div class="absolute top-4 right-4">
+                        {% if product.stock > 0 %}
+                            {% if product.stock <= 5 %}
+                            <span class="px-3 py-1 text-xs font-bold rounded-full bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-300">
+                                Low Stock
+                            </span>
+                            {% else %}
+                            <span class="px-3 py-1 text-xs font-bold rounded-full bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300">
+                                In Stock
+                            </span>
+                            {% endif %}
+                        {% else %}
+                            <span class="px-3 py-1 text-xs font-bold rounded-full bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300">
+                                Out of Stock
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Product Details -->
+                <div class="p-6 flex flex-col flex-grow transition-all duration-500">
+                    <div class="flex items-start justify-between mb-3">
+                        <h2 class="text-xl font-bold text-gray-900 dark:text-white line-clamp-2 flex-1">
+                            {{ product.name }}
+                        </h2>
+                    </div>
+
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                        {{ product.category.name|default:"Uncategorized" }} • by {{ product.seller.get_full_name|default:product.seller.username }}
+                    </p>
+
+ <!-- Price Section with Promotion -->
+<div class="mb-6">
+    {% if product.discounted_price %}
+    <div class="space-y-2">
+        <div class="flex items-center gap-3">
+            <p class="text-3xl font-extrabold text-primary">
+                K{{ product.discounted_price|floatformat:2 }}
+            </p>
+            <p class="text-lg text-gray-500 dark:text-gray-400 line-through">
+                K{{ product.price|floatformat:2 }}
+            </p>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300 px-3 py-1 rounded-full text-sm font-bold">
+                {% if product.active_promotion.discount_type == 'percentage' %}
+                    {{ product.active_promotion.discount_value }}% OFF
+                {% else %}
+                    K{{ product.active_promotion.discount_value|floatformat:2 }} OFF
+                {% endif %}
+            </span>
+            {% if product.active_promotion.title %}
+            <span class="text-xs text-gray-600 dark:text-gray-400 italic">
+                {{ product.active_promotion.title }}
+            </span>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <p class="text-3xl font-extrabold text-primary">
+        K{{ product.price|floatformat:2 }}
+    </p>
+    {% endif %}
+</div>
+                    <!-- Stock Info -->
+                    <p class="text-sm font-medium mt-auto mb-4">
+                        {% if product.stock > 0 %}
+                            {% if product.stock <= 5 %}
+                            <span class="text-orange-600 dark:text-orange-400">Only {{ product.stock }} left!</span>
+                            {% else %}
+                            <span class="text-green-700 dark:text-green-400">{{ product.stock }} in stock</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="text-red-600 dark:text-red-400">Out of stock</span>
+                        {% endif %}
+                    </p>
+
+                    <!-- Add to Cart Button -->
+                    {% if product.stock > 0 %}
+                    <form action="{% url 'cart_add' product.id %}" method="post" class="mt-auto">
+                        {% csrf_token %}
+                        <input type="hidden" name="quantity" value="1">
+                        <button type="submit"
+                                class="w-full bg-primary hover:bg-primary-hover text-white font-bold py-4 rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                            Add to Cart
+                        </button>
+                    </form>
+                    {% else %}
+                    <button disabled
+                            class="w-full bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 font-bold py-4 rounded-2xl cursor-not-allowed mt-auto">
+                        Out of Stock
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Image Gallery Modal -->
+            <div id="gallery-{{ product.id }}"
+                 class="fixed inset-0 bg-black/90 hidden z-50 flex items-center justify-center p-4 transition-opacity duration-300"
+                 onclick="if(event.target === this) closeGallery({{ product.id }})">
+                <div class="bg-white dark:bg-gray-800 rounded-3xl max-w-5xl w-full max-h-full overflow-y-auto relative shadow-2xl">
+                    <button onclick="closeGallery({{ product.id }})"
+                            class="absolute top-4 right-4 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-4xl z-10 bg-white/80 dark:bg-gray-800/80 rounded-full w-12 h-12 flex items-center justify-center">
+                        &times;
+                    </button>
+
+                    {% if product.images.first %}
+                    <img id="main-image-{{ product.id }}"
+                         src="{{ product.images.first.image.url }}"
+                         alt="{{ product.name }}"
+                         class="w-full max-h-screen object-contain mx-auto">
+                    {% endif %}
+
+                    {% if product.images.all|length > 1 %}
+                    <div class="p-6 grid grid-cols-4 sm:grid-cols-6 gap-4 bg-gray-50 dark:bg-gray-900">
+                        {% for img in product.images.all %}
+                        <img src="{{ img.image.url }}"
+                             alt="Thumbnail"
+                             class="w-full h-28 object-cover rounded-xl cursor-pointer border-4 hover:border-primary transition-all
+                                    {% if forloop.first %}border-primary{% endif %}"
+                             onclick="setMainImage('{{ product.id }}', '{{ img.image.url }}')">
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <!-- Empty State -->
+        <div class="text-center py-32 transition-all duration-700">
+            <div class="text-9xl mb-10 opacity-70">🛍️</div>
+            <h3 class="text-4xl font-extrabold text-gray-800 dark:text-gray-100 mb-6">
+                No products available yet
+            </h3>
+            <p class="text-xl text-gray-600 dark:text-gray-300 max-w-md mx-auto leading-relaxed">
+                Check back soon — new and exciting items are added daily by our trusted sellers!
+            </p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Gallery JavaScript -->
+<script>
+function openGallery(id) {
+    document.getElementById(`gallery-${id}`).classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+}
+
+function closeGallery(id) {
+    document.getElementById(`gallery-${id}`).classList.add("hidden");
+    document.body.style.overflow = "auto";
+}
+
+function setMainImage(id, url) {
+    document.getElementById(`main-image-${id}`).src = url;
+}
+</script>
+{% endblock %}

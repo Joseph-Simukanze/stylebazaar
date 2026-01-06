@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block title %}Track Order #{{ order.id }} | Style Bazaar{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-16 px-4">
+    <div class="max-w-5xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-14">
+            <h1 class="text-5xl md:text-6xl font-extrabold text-gray-900 mb-4">Track Your Order</h1>
+            <p class="text-xl md:text-2xl text-gray-600">
+                Stay updated on your package journey from our warehouse to your door
+            </p>
+        </div>
+
+        <!-- Order Summary Card -->
+        <div class="bg-white rounded-3xl shadow-xl p-10 mb-12">
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
+                <div>
+                    <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Order ID</p>
+                    <p class="text-4xl font-extrabold text-gray-900">#{{ order.id }}</p>
+                    <p class="text-lg text-gray-600 mt-2">
+                        Placed on {{ order.created_at|date:"F d, Y \a\t g:i A" }}
+                    </p>
+                </div>
+
+                <div class="text-center lg:text-right">
+                    <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Estimated Delivery</p>
+                    <p class="text-3xl font-bold text-pink-600 mt-2">
+                        {% if order.delivery_option.estimated_days == 1 %}
+                            Tomorrow
+                        {% elif order.delivery_option.estimated_days <= 3 %}
+                            In {{ order.delivery_option.estimated_days }} day{{ order.delivery_option.estimated_days|pluralize }}
+                        {% else %}
+                            Within {{ order.delivery_option.estimated_days }} days
+                        {% endif %}
+                    </p>
+                    <p class="text-base text-gray-700 mt-2 font-medium">
+                        {{ order.delivery_option.name }}
+                    </p>
+                    <div class="mt-4">
+                        <span class="inline-block px-6 py-3 rounded-full text-lg font-semibold
+                                     {% if order.status == 'delivered' %}bg-green-100 text-green-800
+                                     {% elif order.status in 'shipped,processing' %}bg-blue-100 text-blue-800
+                                     {% elif order.status == 'confirmed' %}bg-purple-100 text-purple-800
+                                     {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                            {{ order.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            {% if order.tracking_number %}
+            <div class="mt-10 pt-10 border-t-2 border-dashed border-gray-200">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Tracking Number</p>
+                        <p class="text-2xl font-mono font-bold text-pink-600 break-all">{{ order.tracking_number }}</p>
+                    </div>
+                    <button onclick="navigator.clipboard.writeText('{{ order.tracking_number }}'); alert('Tracking number copied!')"
+                            class="text-pink-600 font-semibold hover:text-pink-700 flex items-center gap-2">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                        </svg>
+                        Copy Tracking Number
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Tracking Timeline -->
+        <div class="bg-white rounded-3xl shadow-xl p-10 md:p-14 mb-12">
+            <h2 class="text-3xl font-extrabold text-gray-900 mb-12 text-center">Delivery Progress</h2>
+
+            <div class="relative">
+                <!-- Connecting Line -->
+                <div class="absolute left-10 top-16 bottom-8 w-1 bg-gray-200 rounded-full"></div>
+
+                <div class="space-y-16">
+                    <!-- Confirmed -->
+                    <div class="relative flex gap-8">
+                        <div class="flex-shrink-0 w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold shadow-lg z-10
+                                    {% if order.status in 'confirmed,processing,shipped,delivered' %}bg-pink-600 text-white{% else %}bg-gray-300 text-gray-600{% endif %}">
+                            ✓
+                        </div>
+                        <div class="flex-1 pt-4">
+                            <h3 class="text-xl font-bold text-gray-900">Order Confirmed</h3>
+                            <p class="text-gray-600 mt-1">We've received and confirmed your order & payment.</p>
+                            <p class="text-sm text-gray-500 mt-2">{{ order.created_at|date:"M d, Y \a\t g:i A" }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Processing -->
+                    <div class="relative flex gap-8">
+                        <div class="flex-shrink-0 w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold shadow-lg z-10
+                                    {% if order.status in 'processing,shipped,delivered' %}bg-pink-600 text-white{% else %}bg-gray-300 text-gray-600{% endif %}">
+                            {% if order.status in 'processing,shipped,delivered' %}✓{% else %}2{% endif %}
+                        </div>
+                        <div class="flex-1 pt-4 {% if order.status not in 'processing,shipped,delivered' %}opacity-60{% endif %}">
+                            <h3 class="text-xl font-bold text-gray-900">Processing</h3>
+                            <p class="text-gray-600 mt-1">Your items are being picked and packed.</p>
+                        </div>
+                    </div>
+
+                    <!-- Shipped -->
+                    <div class="relative flex gap-8">
+                        <div class="flex-shrink-0 w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold shadow-lg z-10
+                                    {% if order.status in 'shipped,delivered' %}bg-pink-600 text-white{% else %}bg-gray-300 text-gray-600{% endif %}">
+                            {% if order.status in 'shipped,delivered' %}✓{% else %}3{% endif %}
+                        </div>
+                        <div class="flex-1 pt-4 {% if order.status not in 'shipped,delivered' %}opacity-60{% endif %}">
+                            <h3 class="text-xl font-bold text-gray-900">Shipped</h3>
+                            <p class="text-gray-600 mt-1">Your package is on its way!</p>
+                            {% if order.tracking_number %}
+                            <p class="text-sm font-medium text-pink-600 mt-3">Tracking: {{ order.tracking_number }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Delivered -->
+                    <div class="relative flex gap-8">
+                        <div class="flex-shrink-0 w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold shadow-lg z-10
+                                    {% if order.status == 'delivered' %}bg-green-600 text-white{% else %}bg-gray-300 text-gray-600{% endif %}">
+                            {% if order.status == 'delivered' %}✓{% else %}4{% endif %}
+                        </div>
+                        <div class="flex-1 pt-4 {% if order.status != 'delivered' %}opacity-60{% endif %}">
+                            <h3 class="text-xl font-bold text-gray-900">Delivered</h3>
+                            <p class="text-gray-600 mt-1">Your order has arrived. Enjoy your new items!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Support CTA -->
+        <div class="text-center">
+            <p class="text-xl text-gray-600 mb-6">Questions about your delivery?</p>
+            <a href="{% url 'users:support' %}" 
+               class="inline-flex items-center gap-3 bg-pink-600 text-white px-10 py-5 rounded-2xl font-bold text-xl hover:bg-pink-700 transition shadow-xl">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                </svg>
+                Contact Support
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

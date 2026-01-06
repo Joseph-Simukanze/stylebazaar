@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% load mathfilters %}  {# For potential savings calculations #}
+
+{% block title %}My Orders - Seller Dashboard | Style Bazaar{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-16 px-4 transition-all duration-700 ease-in-out">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-16 transition-colors duration-500">
+            <h1 class="text-5xl md:text-6xl font-extrabold text-gray-900 dark:text-white mb-6">
+                Orders for Your Products
+            </h1>
+            <p class="text-xl md:text-2xl text-gray-600 dark:text-gray-300">
+                Track and manage all customer orders containing your items
+            </p>
+        </div>
+
+        {% if orders %}
+        <!-- Orders Grid -->
+        <div class="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
+            {% for order in orders %}
+            <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl overflow-hidden hover:shadow-3xl transition-all duration-500 relative flex flex-col">
+                <!-- Gradient Header -->
+                <div class="bg-gradient-to-r from-primary to-purple-700 dark:from-primary-hover dark:to-purple-800 p-8 text-white">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+                        <div>
+                            <h3 class="text-3xl font-extrabold">Order #{{ order.id }}</h3>
+                            <p class="text-lg opacity-90 mt-2">{{ order.created_at|date:"F d, Y \a\t g:i A" }}</p>
+                        </div>
+                        <div class="text-center sm:text-right">
+                            <p class="text-sm opacity-90">Order Total</p>
+                            <p class="text-4xl font-extrabold">K{{ order.get_grand_total|floatformat:2 }} ZMW</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-8 flex-1 flex flex-col">
+                    <!-- Buyer & Status -->
+                    <div class="flex flex-wrap items-center justify-between gap-6 mb-8">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Buyer</p>
+                            <p class="text-xl font-bold text-gray-900 dark:text-white">
+                                {{ order.buyer.get_full_name|default:order.buyer.username }}
+                            </p>
+                        </div>
+                        <div>
+                            <span class="inline-block px-6 py-3 bg-white/20 backdrop-blur rounded-full text-lg font-bold">
+                                {{ order.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Your Products in This Order -->
+                    <div class="mb-8 flex-1">
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-4">
+                            Your Items ({{ order.items.count }})
+                        </p>
+                        <div class="space-y-4">
+                            {% for item in order.items.all|slice:":3" %}
+                            <div class="flex items-center gap-4 bg-gray-50 dark:bg-gray-700/50 rounded-2xl p-4 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300">
+                                <div class="w-16 h-16 bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-md flex-shrink-0">
+                                    {% if item.product.main_image %}
+                                    <img src="{{ item.product.main_image.url }}" alt="{{ item.product.name }}" class="w-full h-full object-cover">
+                                    {% else %}
+                                    <div class="w-full h-full flex items-center justify-center text-4xl">📦</div>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="font-semibold text-gray-900 dark:text-white text-sm truncate">{{ item.product.name }}</p>
+                                    <div class="flex items-center gap-4 mt-1 text-sm">
+                                        <span class="text-gray-600 dark:text-gray-400">Qty: {{ item.quantity }}</span>
+                                        <span class="font-bold text-primary">K{{ item.price|floatformat:2 }}</span>
+                                    </div>
+
+                                    <!-- Promotion Savings Badge -->
+                                    {% if item.original_price and item.original_price > item.price %}
+                                    <span class="inline-block mt-2 bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300 px-3 py-1 rounded-full text-xs font-bold">
+                                        Saved K{{ item.original_price|sub:item.price|mul:item.quantity|floatformat:2 }}
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                            {% if order.items.count > 3 %}
+                            <p class="text-center text-sm font-medium text-primary mt-4">
+                                + {{ order.items.count|add:"-3" }} more item{{ order.items.count|add:"-3"|pluralize }}
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex gap-4 mt-auto">
+                        <a href="{% url 'orders:seller_order_detail' order.id %}"
+                           class="flex-1 text-center bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 py-4 rounded-2xl font-bold hover:bg-gray-200 dark:hover:bg-gray-600 transition shadow-md">
+                            View Details
+                        </a>
+                        {% if order.status in 'processing,shipped' %}
+                        <a href="{% url 'orders:update_shipping' order.id %}"
+                           class="flex-1 text-center bg-teal-600 dark:bg-teal-500 text-white py-4 rounded-2xl font-bold hover:bg-teal-700 dark:hover:bg-teal-400 transition shadow-lg transform hover:-translate-y-1">
+                            Update Shipping
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Status Badge Overlay -->
+                <div class="absolute top-8 right-8">
+                    <span class="inline-block px-5 py-2 bg-white/30 backdrop-blur rounded-full text-sm font-bold text-white uppercase tracking-wider shadow-lg">
+                        {{ order.get_status_display }}
+                    </span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <!-- Empty State -->
+        <div class="text-center py-32 transition-all duration-700">
+            <div class="text-9xl mb-10 opacity-70">📦</div>
+            <h2 class="text-4xl font-extrabold text-gray-800 dark:text-white mb-6">
+                No orders yet
+            </h2>
+            <p class="text-xl text-gray-600 dark:text-gray-300 max-w-md mx-auto leading-relaxed mb-10">
+                When customers purchase your products, their orders will appear here. Start promoting your items to get your first sale!
+            </p>
+            <a href="{% url 'products:product_create' %}"
+               class="inline-flex items-center gap-3 px-10 py-6 bg-primary text-white font-bold text-xl rounded-2xl hover:bg-primary-hover transition-all duration-300 shadow-2xl transform hover:-translate-y-1">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H-8"/>
+                </svg>
+                Add More Products
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

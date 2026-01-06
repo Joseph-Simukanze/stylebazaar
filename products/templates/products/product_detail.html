@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }} - Style Bazaar{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 transition-colors duration-500">
+    <div class="max-w-7xl mx-auto">
+        <!-- Breadcrumb -->
+        <nav class="flex items-center text-sm text-gray-600 dark:text-gray-400 mb-10">
+            <a href="{% url 'products:product_list' %}" 
+               class="hover:text-pink-600 dark:hover:text-pink-400 transition">Shop</a>
+            <svg class="w-4 h-4 mx-3 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+            {% if product.category %}
+            <a href="{% url 'products:category_detail' product.category.slug %}" 
+               class="hover:text-pink-600 dark:hover:text-pink-400 transition">
+                {{ product.category.name }}
+            </a>
+            <svg class="w-4 h-4 mx-3 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+            {% endif %}
+            <span class="text-gray-900 dark:text-white font-medium">{{ product.name }}</span>
+        </nav>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
+            <!-- Product Images Gallery -->
+            <div class="space-y-6">
+                {% if product.images.all %}
+                <!-- Main Image -->
+                <div class="rounded-3xl overflow-hidden shadow-2xl bg-white dark:bg-gray-800">
+                    <img src="{{ product.images.first.image.url }}"
+                         alt="{{ product.name }}"
+                         class="w-full h-[500px] md:h-[600px] object-cover transition-transform duration-700 hover:scale-105"
+                         id="mainImage">
+                </div>
+
+                <!-- Thumbnails -->
+                {% if product.images.all|length > 1 %}
+                <div class="grid grid-cols-4 md:grid-cols-5 gap-4">
+                    {% for img in product.images.all %}
+                    <div class="relative group">
+                        <img src="{{ img.image.url }}"
+                             alt="{{ product.name }} - View {{ forloop.counter }}"
+                             class="w-full h-32 object-cover rounded-2xl cursor-pointer border-4 transition-all duration-300
+                                    {% if forloop.first %}border-pink-600 dark:border-pink-500 shadow-xl{% else %}border-gray-200 dark:border-gray-700 group-hover:border-pink-500 dark:group-hover:border-pink-400{% endif %}"
+                             onclick="document.getElementById('mainImage').src = '{{ img.image.url }}'"
+                             loading="lazy">
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% else %}
+                <!-- No Image Placeholder -->
+                <div class="h-[500px] md:h-[600px] bg-gradient-to-br from-pink-100 via-purple-100 to-indigo-100 dark:from-pink-900/30 dark:via-purple-900/30 dark:to-indigo-900/30 rounded-3xl flex items-center justify-center shadow-2xl">
+                    <span class="text-9xl text-gray-300 dark:text-gray-700">🛍️</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Product Information -->
+            <div class="space-y-10">
+                <!-- Category & Seller -->
+                <div class="flex items-center gap-4 text-sm uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                    <span>{{ product.category.name|default:"Uncategorized" }}</span>
+                    <span class="text-pink-600 dark:text-pink-400">•</span>
+                    <span>Sold by 
+                        <span class="font-semibold text-pink-600 dark:text-pink-400">
+                            {{ product.seller.get_full_name|default:product.seller.username }}
+                        </span>
+                    </span>
+                </div>
+
+                <!-- Product Name -->
+                <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white leading-tight">
+                    {{ product.name }}
+                </h1>
+
+                <!-- Pricing Section -->
+                <div class="mt-8">
+                    {% if product.has_savings %}
+                    <!-- On Sale -->
+                    <div class="space-y-4">
+                        <div class="flex items-end gap-6">
+                            <span class="text-5xl md:text-6xl font-extrabold text-pink-600 dark:text-pink-400">
+                                K{{ product.current_price|floatformat:2 }} ZMW
+                            </span>
+                            <span class="text-2xl text-gray-500 dark:text-gray-500 line-through mb-2">
+                                K{{ product.price|floatformat:2 }}
+                            </span>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-5">
+                            <span class="text-xl font-bold text-green-600 dark:text-green-400">
+                                You save K{{ product.savings_amount|floatformat:2 }}!
+                            </span>
+
+                            {% if product.has_active_promotion %}
+                            <span class="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-6 py-3 rounded-full text-lg font-bold shadow-xl">
+                                {% with promo=product.active_promotion %}
+                                    {% if promo.discount_type == 'percentage' %}
+                                        {{ promo.discount_value|floatformat:0 }}% OFF
+                                    {% else %}
+                                        K{{ promo.discount_value|floatformat:2 }} OFF
+                                    {% endif %}
+                                {% endwith %}
+                            </span>
+                            {% endif %}
+
+                            {% if product.active_promotion.title %}
+                            <span class="text-sm italic text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-4 py-2 rounded-full">
+                                "{{ product.active_promotion.title }}"
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <!-- Regular Price -->
+                    <span class="text-5xl md:text-6xl font-extrabold text-pink-600 dark:text-pink-400">
+                        K{{ product.current_price|floatformat:2 }} ZMW
+                    </span>
+                    {% endif %}
+                </div>
+
+                <!-- Stock Status -->
+                <div class="mt-10">
+                    {% if product.stock > 0 %}
+                        <div class="inline-flex items-center gap-4 px-6 py-4 bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 rounded-2xl font-bold text-xl shadow-lg">
+                            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            {% if product.stock <= 5 %}
+                                <span class="text-orange-600 dark:text-orange-400">Only {{ product.stock }} left in stock!</span>
+                            {% else %}
+                                <span>{{ product.stock }} in stock</span>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <div class="inline-flex items-center gap-4 px-6 py-4 bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300 rounded-2xl font-bold text-xl shadow-lg">
+                            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                            </svg>
+                            Out of Stock
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Description -->
+                <div class="mt-12">
+                    <h3 class="font-bold text-3xl mb-6 text-gray-900 dark:text-white">Description</h3>
+                    <div class="text-gray-700 dark:text-gray-300 leading-relaxed text-lg prose dark:prose-invert max-w-none whitespace-pre-line">
+                        {{ product.description|default:"No description available yet." }}
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="mt-16 flex flex-col sm:flex-row gap-6">
+                    {% if product.stock > 0 %}
+                    <form action="{% url 'cart_add' product.id %}" method="post" class="flex-1">
+                        {% csrf_token %}
+                        <input type="hidden" name="quantity" value="1">
+                        <button type="submit"
+                                class="w-full bg-gradient-to-r from-pink-600 to-purple-700 hover:from-pink-700 hover:to-purple-800 text-white font-extrabold text-2xl py-6 rounded-3xl transition-all duration-300 shadow-2xl hover:shadow-3xl flex items-center justify-center gap-4 transform hover:-translate-y-1">
+                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                            </svg>
+                            Add to Cart
+                        </button>
+                    </form>
+                    {% else %}
+                    <button disabled class="w-full bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 font-extrabold text-2xl py-6 rounded-3xl cursor-not-allowed">
+                        Out of Stock
+                    </button>
+                    {% endif %}
+
+                    <a href="{% url 'products:product_list' %}"
+                       class="flex-1 text-center bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 font-bold text-xl py-6 rounded-3xl transition shadow-lg flex items-center justify-center gap-3">
+                        ← Continue Shopping
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
