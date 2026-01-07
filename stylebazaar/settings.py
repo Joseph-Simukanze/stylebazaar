@@ -22,7 +22,6 @@ SECRET_KEY = os.environ.get(
 
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 
-# Allow Render domain and localhost for local dev
 ALLOWED_HOSTS = os.environ.get(
     "ALLOWED_HOSTS",
     "localhost,127.0.0.1"
@@ -98,16 +97,13 @@ TEMPLATES = [
 WSGI_APPLICATION = "stylebazaar.wsgi.application"
 
 # --------------------------------------------------
-# DATABASE (PostgreSQL)
+# DATABASE (PostgreSQL on Render)
 # --------------------------------------------------
 DATABASES = {
     "default": dj_database_url.config(
-        default=os.environ.get(
-            "DATABASE_URL",
-            "postgresql://website_user:admin123@localhost:5432/website_db"
-        ),
+        default=os.environ.get("DATABASE_URL"),  # e.g. postgres://user:password@host:port/dbname
         conn_max_age=600,
-        ssl_require=not DEBUG,  # Use SSL in production
+        ssl_require=not DEBUG,  # Force SSL in production
     )
 }
 
