@@ -28,9 +28,9 @@ SECRET_KEY = os.environ.get(
 )
 
 DEBUG = os.environ.get("DJANGO_DEBUG", "False") == "True"
+import os
 
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
-
 
 # --------------------------------------------------
 # APPLICATION DEFINITION
