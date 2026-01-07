@@ -1,6 +1,6 @@
 """
 Django settings for stylebazaar project.
-Production-ready configuration for Render deployment with PostgreSQL.
+Production-ready configuration for deployment with PostgreSQL.
 """
 
 from pathlib import Path
@@ -28,9 +28,11 @@ SECRET_KEY = os.environ.get(
 )
 
 DEBUG = os.environ.get("DJANGO_DEBUG", "False") == "True"
-import os
 
-ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+ALLOWED_HOSTS = os.environ.get(
+    "DJANGO_ALLOWED_HOSTS",
+    "localhost,127.0.0.1"
+).split(",")
 
 # --------------------------------------------------
 # APPLICATION DEFINITION
@@ -63,7 +65,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",  # For static files on Render
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # Serve static files
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -102,13 +104,13 @@ TEMPLATES = [
 WSGI_APPLICATION = "stylebazaar.wsgi.application"
 
 # --------------------------------------------------
-# DATABASE (PostgreSQL on Render)
+# DATABASE (PostgreSQL via DATABASE_URL)
 # --------------------------------------------------
 DATABASES = {
     "default": dj_database_url.config(
-        default=os.environ.get("DATABASE_URL"),  # e.g. postgres://user:password@host:port/dbname
+        default=os.environ.get("DATABASE_URL"),
         conn_max_age=600,
-        ssl_require=not DEBUG,  # Force SSL in production
+        ssl_require=not DEBUG,
     )
 }
 
