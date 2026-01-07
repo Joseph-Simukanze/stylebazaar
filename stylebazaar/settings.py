@@ -5,7 +5,14 @@ Production-ready configuration for Render deployment with PostgreSQL.
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
 import dj_database_url
+
+# --------------------------------------------------
+# LOAD ENVIRONMENT VARIABLES
+# --------------------------------------------------
+# Make sure you have a .env file in BASE_DIR
+load_dotenv()
 
 # --------------------------------------------------
 # BASE DIRECTORY
@@ -16,14 +23,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY SETTINGS
 # --------------------------------------------------
 SECRET_KEY = os.environ.get(
-    "SECRET_KEY",
+    "DJANGO_SECRET_KEY",
     "unsafe-dev-key-change-this"
 )
 
-DEBUG = os.environ.get("DEBUG", "False") == "True"
+DEBUG = os.environ.get("DJANGO_DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = os.environ.get(
-    "ALLOWED_HOSTS",
+    "DJANGO_ALLOWED_HOSTS",
     "localhost,127.0.0.1"
 ).split(",")
 
