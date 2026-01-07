@@ -6,8 +6,7 @@ Production-ready configuration for Render deployment with PostgreSQL.
 from pathlib import Path
 import os
 import dj_database_url
-from dotenv import load_dotenv
-load_dotenv(os.path.join(Path(__file__).resolve().parent.parent, ".env"))
+
 # --------------------------------------------------
 # BASE DIRECTORY
 # --------------------------------------------------
@@ -16,15 +15,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # --------------------------------------------------
 # SECURITY SETTINGS
 # --------------------------------------------------
-SECRET_KEY = os.getenv(
-    "DJANGO_SECRET_KEY",
+SECRET_KEY = os.environ.get(
+    "SECRET_KEY",
     "unsafe-dev-key-change-this"
 )
 
-DEBUG = os.getenv("DJANGO_DEBUG", "False") == "True"
+DEBUG = os.environ.get("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = os.getenv(
-    "DJANGO_ALLOWED_HOSTS",
+# Allow Render domain and localhost for local dev
+ALLOWED_HOSTS = os.environ.get(
+    "ALLOWED_HOSTS",
     "localhost,127.0.0.1"
 ).split(",")
 
@@ -93,17 +93,16 @@ TEMPLATES = [
 ]
 
 # --------------------------------------------------
-# WSGI / ASGI
+# WSGI
 # --------------------------------------------------
 WSGI_APPLICATION = "stylebazaar.wsgi.application"
-# ASGI_APPLICATION = 'stylebazaar.asgi.application'  # Uncomment for channels
 
 # --------------------------------------------------
 # DATABASE (PostgreSQL)
 # --------------------------------------------------
 DATABASES = {
     "default": dj_database_url.config(
-        default=os.getenv(
+        default=os.environ.get(
             "DATABASE_URL",
             "postgresql://website_user:admin123@localhost:5432/website_db"
         ),
@@ -145,7 +144,6 @@ USE_TZ = True
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
-
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # --------------------------------------------------
@@ -162,25 +160,23 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # --------------------------------------------------
 # STRIPE KEYS
 # --------------------------------------------------
-STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY", "")
-STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
+STRIPE_PUBLIC_KEY = os.environ.get("STRIPE_PUBLIC_KEY", "")
+STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "")
 
 # --------------------------------------------------
 # EMAIL CONFIGURATION
 # --------------------------------------------------
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
-EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
-EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
-DEFAULT_FROM_EMAIL = os.getenv(
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", 587))
+EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "True") == "True"
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+DEFAULT_FROM_EMAIL = os.environ.get(
     "DEFAULT_FROM_EMAIL", "Style Bazaar <noreply@stylebazaar.com>"
 )
 
 # --------------------------------------------------
 # SITE URL
 # --------------------------------------------------
-SITE_URL = os.getenv("SITE_URL", "http://127.0.0.1:8000")
-STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+SITE_URL = os.environ.get("SITE_URL", "http://127.0.0.1:8000")
